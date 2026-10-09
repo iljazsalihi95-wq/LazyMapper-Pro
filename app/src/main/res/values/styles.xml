@@ -1,0 +1,9 @@
+<resources>
+  <style name="Theme.LazyMapper" parent="android:style/Theme.Material.NoActionBar">
+    <item name="android:fontFamily">sans</item>
+    <item name="android:windowBackground">#06142B</item>
+    <item name="android:colorAccent">#D6A53A</item>
+    <item name="android:navigationBarColor">#06142B</item>
+    <item name="android:statusBarColor">#06142B</item>
+  </style>
+</resources>
