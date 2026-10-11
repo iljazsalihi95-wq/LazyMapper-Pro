@@ -7,9 +7,7 @@ import android.net.Uri;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebChromeClient;
-import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
-import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
