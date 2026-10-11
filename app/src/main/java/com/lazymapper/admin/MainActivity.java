@@ -27,6 +27,32 @@ public class MainActivity extends Activity {
   private final ExecutorService io=Executors.newFixedThreadPool(3);
   private boolean trustedPage=false;
   public class NativeHttp {
+    @JavascriptInterface public void probe(String url,String requestId){
+      if(!trustedPage)return;
+      io.execute(()->{
+        String state="UNKNOWN";HttpURLConnection c=null;
+        try{
+          URL u=new URL(url);String protocol=u.getProtocol();
+          if(!"http".equalsIgnoreCase(protocol)&&!"https".equalsIgnoreCase(protocol))throw new Exception("Unsupported URL");
+          c=(HttpURLConnection)u.openConnection();
+          c.setConnectTimeout(7000);c.setReadTimeout(7000);c.setInstanceFollowRedirects(true);
+          c.setRequestProperty("User-Agent","VLC/3.0.20 LibVLC/3.0.20");
+          c.setRequestProperty("Range","bytes=0-1023");
+          int status=c.getResponseCode();
+          if(status==404||status==410)state="DEAD";
+          else if(status==200||status==206){
+            String ct=c.getContentType();ct=ct==null?"":ct.toLowerCase();
+            if(!ct.contains("text/html")){
+              InputStream in=c.getInputStream();byte[] sample=new byte[1024];int n=in.read(sample);in.close();
+              if(n>0)state="WORKING";
+            }
+          }
+        }catch(Exception ignored){}finally{if(c!=null)c.disconnect();}
+        JSONObject obj=new JSONObject();try{obj.put("state",state);}catch(Exception ignored){}
+        String js="window.LazyMapperProbeReply&&window.LazyMapperProbeReply("+JSONObject.quote(requestId)+","+obj.toString()+")";
+        runOnUiThread(()->{if(trustedPage&&web!=null)web.evaluateJavascript(js,null);});
+      });
+    }
     @JavascriptInterface public void getM3u(String url,String requestId){
       if(!trustedPage)return;
       io.execute(()->{
