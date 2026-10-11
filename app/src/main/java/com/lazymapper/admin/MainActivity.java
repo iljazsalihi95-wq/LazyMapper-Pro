@@ -9,11 +9,44 @@ import android.webkit.WebView;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
+import android.graphics.Bitmap;
+import org.json.JSONObject;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 public class MainActivity extends Activity {
   private WebView web;
   private ValueCallback<Uri[]> fileCallback;
   private static final int FILE_PICKER=3001;
+  private final ExecutorService io=Executors.newFixedThreadPool(3);
+  private boolean trustedPage=false;
+  public class NativeHttp {
+    @JavascriptInterface public void getM3u(String url,String requestId){
+      if(!trustedPage)return;
+      io.execute(()->{
+        JSONObject reply=new JSONObject();HttpURLConnection c=null;
+        try{
+          URL u=new URL(url);String scheme=u.getProtocol();
+          if(!"http".equalsIgnoreCase(scheme)&&!"https".equalsIgnoreCase(scheme))throw new Exception("Lejohen vetëm HTTP/HTTPS");
+          c=(HttpURLConnection)u.openConnection();c.setConnectTimeout(15000);c.setReadTimeout(45000);c.setInstanceFollowRedirects(true);
+          c.setRequestProperty("User-Agent","Mozilla/5.0 (Android) LazyMapper/1.0");
+          int status=c.getResponseCode();if(status<200||status>=300)throw new Exception("HTTP "+status);
+          InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buf=new byte[8192];int n;
+          while((n=in.read(buf))!=-1){out.write(buf,0,n);if(out.size()>25*1024*1024)throw new Exception("M3U mbi 25 MB");}
+          reply.put("ok",true);reply.put("text",out.toString("UTF-8"));
+        }catch(Exception e){try{reply.put("ok",false);reply.put("error",e.getMessage()==null?"Gabim rrjeti":e.getMessage());}catch(Exception ignored){}}
+        finally{if(c!=null)c.disconnect();}
+        final String js="window.LazyMapperNativeReply&&window.LazyMapperNativeReply("+JSONObject.quote(requestId)+","+reply.toString()+")";
+        runOnUiThread(()->{if(trustedPage&&web!=null)web.evaluateJavascript(js,null);});
+      });
+    }
+  }
   @Override public void onCreate(Bundle b) {
     super.onCreate(b);
     web = new WebView(this);
@@ -24,7 +57,14 @@ public class MainActivity extends Activity {
     s.setDatabaseEnabled(true);
     s.setAllowFileAccess(true);
     s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-    web.setWebViewClient(new WebViewClient());
+    web.addJavascriptInterface(new NativeHttp(),"LazyMapperNative");
+    web.setWebViewClient(new WebViewClient(){
+      @Override public void onPageStarted(WebView view,String url,Bitmap favicon){trustedPage="file:///android_asset/index.html".equals(url);}
+      @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){
+        Uri u=request.getUrl();if("file".equals(u.getScheme())&&"/android_asset/index.html".equals(u.getPath()))return false;
+        try{startActivity(new Intent(Intent.ACTION_VIEW,u));}catch(Exception ignored){}return true;
+      }
+    });
     web.setWebChromeClient(new WebChromeClient(){
       @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params){
         if(fileCallback!=null)fileCallback.onReceiveValue(null);
@@ -33,6 +73,7 @@ public class MainActivity extends Activity {
         catch(Exception e){fileCallback=null;return false;}
       }
     });
+    trustedPage=true;
     web.loadUrl("file:///android_asset/index.html");
   }
   @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
