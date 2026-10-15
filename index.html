@@ -26,6 +26,84 @@ nav button.on,.gold{background:#eab91e;color:#071523}.hero{background:linear-gra
 <div id="m3uPanel" class="card hidden"><div class="grid"><select id="m3uCountry"><option value="">🌍 Të gjitha shtetet</option></select><select id="m3uCategory"><option value="">📂 Të gjitha kategoritë</option></select><input id="m3uSearch" placeholder="🔎 Kërko kanal..."></div></div><div id="m3uTestTools" class="card hidden"><button class="gold" id="m3uTestAll">⚡ TEST ALL CHANNELS</button><button id="m3uStop" style="margin-top:8px">■ STOP</button><button id="m3uWorking" style="margin-top:8px">✓ SHFAQ WORKING</button><div class="m" id="m3uTestProgress">0 tested</div><div class="m warn">Kontroll HTTP nga WebView: CORS dhe autorizimi mund të japin UNKNOWN. Nuk përdoret video-player.</div></div><div id="m3uList" class="card hidden"></div><div id="m3uTransfer" class="card hidden"><h3>🚀 Bart kanalet WORKING në SERVER_01–20</h3><select id="mDest"></select><input id="mKey" type="password" autocomplete="off" placeholder="API key (nuk ruhet)"><button id="mSend" class="gold">TESTO + BART WORKING</button><button id="mStopUpload">■ NDAL PAS GRUPIT</button><div id="mUploadStatus" class="m"></div></div></section>
 <section id="register" class="page hidden"><div class="card hero"><b>🔑 REGJISTRO NË LAZYTV PRO</b><div class="sub">Mapper → Server → Device ID + KEY → LazyTV Pro</div></div><div class="card"><div class="grid"><select id="regServer"></select><input id="deviceId" placeholder="Device ID"></div><input id="deviceKey" placeholder="KEY" style="margin-top:8px"><input id="regEndpoint" type="hidden" value="https://script.google.com/macros/s/AKfycbw9JaO_WG1U8YiGYFNA5bhagGD4FQg0wxgMVss76bmsxYyseCocXmacknnLpNz69UEF0A/exec"><div class="m">🔗 Backend LazyTV Pro i lidhur automatikisht</div><button class="gold" id="regButton" style="margin-top:8px" onclick="registerInfo()">TESTO REGJISTRIMIN / STATUSIN</button><button class="gold" style="margin-top:8px;background:#176b51;color:white" onclick="openLazyAdmin()">🔐 HAP PANELIN ADMIN PËR AKTIVIZIM</button><div class="m">Dërgon kërkesë POST login për statusin e pajisjes. Aktivizimi kërkon miratim administratori.</div><div id="regStatus" class="m"></div></div></section>
 </div><script>
+// Explicit DOM references: never rely on browser window-named properties (notably window.status).
+const servers=document.getElementById("servers");
+const serverBtns=document.getElementById("serverBtns");
+const viewer=document.getElementById("viewer");
+const serverTitle=document.getElementById("serverTitle");
+const category=document.getElementById("category");
+const search=document.getElementById("search");
+const list=document.getElementById("list");
+const stalker=document.getElementById("stalker");
+const sPortal=document.getElementById("sPortal");
+const sMac=document.getElementById("sMac");
+const sConnect=document.getElementById("sConnect");
+const sStatus=document.getElementById("sStatus");
+const sPanel=document.getElementById("sPanel");
+const sCountry=document.getElementById("sCountry");
+const sCategory=document.getElementById("sCategory");
+const sSearch=document.getElementById("sSearch");
+const sList=document.getElementById("sList");
+const sTransfer=document.getElementById("sTransfer");
+const sDest=document.getElementById("sDest");
+const sKey=document.getElementById("sKey");
+const sTest=document.getElementById("sTest");
+const sSend=document.getElementById("sSend");
+const sProgress=document.getElementById("sProgress");
+const xtream=document.getElementById("xtream");
+const xHost=document.getElementById("xHost");
+const xUser=document.getElementById("xUser");
+const xPass=document.getElementById("xPass");
+const xConnect=document.getElementById("xConnect");
+const xStatus=document.getElementById("xStatus");
+const xPanel=document.getElementById("xPanel");
+const xClear=document.getElementById("xClear");
+const xCategory=document.getElementById("xCategory");
+const xSearch=document.getElementById("xSearch");
+const xCount=document.getElementById("xCount");
+const xTest=document.getElementById("xTest");
+const xExport=document.getElementById("xExport");
+const xExportMode=document.getElementById("xExportMode");
+const xTestStatus=document.getElementById("xTestStatus");
+const xDest=document.getElementById("xDest");
+const xPrepareServer=document.getElementById("xPrepareServer");
+const xServerStatus=document.getElementById("xServerStatus");
+const lmUploadPanel=document.getElementById("lmUploadPanel");
+const lmUploadKey=document.getElementById("lmUploadKey");
+const lmUploadStart=document.getElementById("lmUploadStart");
+const lmUploadStop=document.getElementById("lmUploadStop");
+const lmUploadStatus=document.getElementById("lmUploadStatus");
+const xList=document.getElementById("xList");
+const m3u=document.getElementById("m3u");
+const m3uUrl=document.getElementById("m3uUrl");
+const m3uLoadUrl=document.getElementById("m3uLoadUrl");
+const m3uFile=document.getElementById("m3uFile");
+const m3uText=document.getElementById("m3uText");
+const m3uParse=document.getElementById("m3uParse");
+const m3uStatus=document.getElementById("m3uStatus");
+const m3uPanel=document.getElementById("m3uPanel");
+const m3uCountry=document.getElementById("m3uCountry");
+const m3uCategory=document.getElementById("m3uCategory");
+const m3uSearch=document.getElementById("m3uSearch");
+const m3uTestTools=document.getElementById("m3uTestTools");
+const m3uTestAll=document.getElementById("m3uTestAll");
+const m3uStop=document.getElementById("m3uStop");
+const m3uWorking=document.getElementById("m3uWorking");
+const m3uTestProgress=document.getElementById("m3uTestProgress");
+const m3uList=document.getElementById("m3uList");
+const m3uTransfer=document.getElementById("m3uTransfer");
+const mDest=document.getElementById("mDest");
+const mKey=document.getElementById("mKey");
+const mSend=document.getElementById("mSend");
+const mStopUpload=document.getElementById("mStopUpload");
+const mUploadStatus=document.getElementById("mUploadStatus");
+const register=document.getElementById("register");
+const regServer=document.getElementById("regServer");
+const deviceId=document.getElementById("deviceId");
+const deviceKey=document.getElementById("deviceKey");
+const regEndpoint=document.getElementById("regEndpoint");
+const regButton=document.getElementById("regButton");
+const regStatus=document.getElementById("regStatus");
 const API="https://script.google.com/macros/s/AKfycbysBEFikuB_VIK0yIKXZ1-hiRL2P9mZIchLcP0_T4g-9xj1p5HJOkVborf6AD2HBP66/exec";
 const IMPORT_API="https://script.google.com/macros/s/AKfycbxfxkxJWDjbj836dYc37Ztn3fa_AwbUfPqwRb3cE2QcUID6Rm1GkdD-JuFbj0GGCYs/exec";let server="SERVER_01",type="LIVE",rows=[],token=0;
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -213,7 +291,7 @@ sConnect.onclick=async()=>{
  let loaded=0;for(const genre of sGenres){for(let page=1;page<=150;page++){
  const j=await sGet("channels",{genre:String(genre.id),page:String(page)});const items=Array.isArray(j.channels)?j.channels:[];
  for(const x of items){const name=String(x.name||x.title||"Unknown"),cat=String(genre.title||"General");sRows.push({id:String(x.id||x.ch_id||sRows.length),name,category:cat,country:sCountryFromName(cat+" "+name),cmd:String(x.cmd||""),url:"",test:"NOT TESTED"});}
- loaded+=items.length;sStatus.textContent="LIVE • "+loaded+" kanale • "+cat; if(page%5===0){sUpdateFilters();await new Promise(r=>setTimeout(r,0))}
+ loaded+=items.length;sStatus.textContent="LIVE • "+loaded+" kanale • "+String(genre.title||"General"); if(page%5===0){sUpdateFilters();await new Promise(r=>setTimeout(r,0))}
  const max=Number(j.max_page||0);if(!items.length||(max&&page>=max))break;
  }}
  sUpdateFilters();sStatus.textContent="LIVE u lexua: "+sRows.length+" kanale. Zgjidh shtetin/kategorinë, testo dhe bart.";
