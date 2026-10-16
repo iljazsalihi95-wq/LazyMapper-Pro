@@ -310,8 +310,8 @@ function lmOpenPreview(url,name){
    alert("Preview Media3 është funksion Android. Hap aplikacionin APK, jo faqen në browser.");
  }
 }
-function lmPreviewServer(i){const x=rows[i];if(x)lmOpenPreview(val(x,"URL")||val(x,"STREAM_URL")||val(x,"LINK"),val(x,"NAME"));}
+function lmPreviewServer(i){const x=rows[i];if(!x)return;const url=["STREAM_URL_CMD","STREAM_URL","URL","LINK","CMD","PLAY_URL","stream_url_cmd","stream_url","url","cmd"].map(k=>val(x,k)).find(v=>/^https?:\/\//i.test(v));lmOpenPreview(url||"",val(x,"NAME"));}
 function lmPreviewXtream(i){const x=xRows[i];if(x)lmOpenPreview(xStreamUrl(x),x._name);}
 function lmPreviewM3u(i){const x=mRows[i];if(x)lmOpenPreview(x.url,x.name);}
-function lmPreviewStalker(i){const x=sRows[i];if(x)lmOpenPreview(x.url||x.stream_url||x.streamUrl||"",x.name);}
+function lmPreviewStalker(i){const x=sRows[i];if(!x)return;const url=[x.url,x.stream_url,x.streamUrl,x.cmd,x.link].find(v=>/^https?:\/\//i.test(String(v||"").trim()));lmOpenPreview(url||"",x.name);}
 </script></body></html>
