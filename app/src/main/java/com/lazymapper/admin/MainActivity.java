@@ -27,6 +27,18 @@ public class MainActivity extends Activity {
   private final ExecutorService io=Executors.newFixedThreadPool(3);
   private boolean trustedPage=false;
   public class NativeHttp {
+    @JavascriptInterface public void preview(String url,String title,String mode){
+      if(!trustedPage)return;
+      try {
+        Uri uri=Uri.parse(url);
+        if(!"http".equalsIgnoreCase(uri.getScheme())&&!"https".equalsIgnoreCase(uri.getScheme()))return;
+        runOnUiThread(()->{
+          Intent i=new Intent(MainActivity.this,PreviewActivity.class);
+          i.putExtra("url",url);i.putExtra("title",title);i.putExtra("mode",mode);
+          startActivity(i);
+        });
+      } catch(Exception ignored){}
+    }
     @JavascriptInterface public void probe(String url,String requestId){
       if(!trustedPage)return;
       io.execute(()->{
