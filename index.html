@@ -389,10 +389,10 @@ const lmVideo=lmEl("previewVideo"),lmDialog=lmEl("webPreview");
 let lmHls=null,lmPreviewUrl="",lmPreviewName="";
 function lmStopHls(){if(lmHls){lmHls.destroy();lmHls=null;}lmVideo.pause();lmVideo.removeAttribute("src");lmVideo.load();}
 function lmWebPreview(url,name){
- if(!/^https?:\\/\\//i.test(String(url||""))){lmEl("previewStatus").textContent="URL e pavlefshme";return;}
+ if(!/^https?:\/\//i.test(String(url||""))){lmEl("previewStatus").textContent="URL e pavlefshme";return;}
  lmPreviewUrl=url;lmPreviewName=name||"Preview";lmStopHls();lmEl("previewName").textContent=lmPreviewName;
  lmEl("previewStatus").textContent="Duke hapur player-in…";lmDialog.showModal();
- const hls=/\\.m3u8(?:[?#]|$)/i.test(url);
+ const hls=/\.m3u8(?:[?#]|$)/i.test(url);
  if(hls&&window.Hls&&window.Hls.isSupported()){
   lmHls=new window.Hls({enableWorker:true,lowLatencyMode:true,maxBufferLength:25});
   lmHls.on(window.Hls.Events.ERROR,(_event,data)=>{lmEl("previewStatus").textContent="HLS: "+data.details+(data.fatal?" (gabim kritik)":"");if(data.fatal){if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR)lmHls.startLoad();else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR)lmHls.recoverMediaError();else lmStopHls();}});
