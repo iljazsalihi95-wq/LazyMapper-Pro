@@ -9,7 +9,7 @@ Backup: `backup/pre-mapper-audit-20261019` at `6a88cbf8c41fded6d25f6450864c64f85
 - Python private backend with an SQLite queue, a single bounded worker, one timeout retry, restart recovery, and 30-day completed-history retention.
 - Authorized exact-host allowlist, public-address validation, pinned DNS address per connection, TLS verification, redirect checks, byte limits, time limits. Each HLS child URL is checked separately. No key fetching.
 - Plain HLS master/media manifest traversal, first segment availability, bounded FFprobe metadata and FFmpeg decoding. WORKING means the downloaded sample decoded with advancing media timestamps; sustained playback/buffering is NOT TESTED.
-- Bearer-authenticated job submission, status/history, JSON/CSV export. Token configured by environment; web session keeps it only in memory. Pending source URLs are private queue data and are erased from completed jobs. Redirect URLs are not exported into history.
+- Bearer-authenticated job submission, status/history, JSON/CSV export. Token configured by environment; web session keeps it only in memory; Android explicitly stores an encrypted backend session for WorkManager. Pending source URLs are private queue data and are erased from completed jobs. Redirect URLs are not exported into history.
 - Settings and Stream Analyzer/History in the existing HTML. Existing server integrations remain in place.
 - M3U metadata preservation: tvg-id/name/logo/country, group-title, names containing commas, directives between EXTINF and URI, original stream URL, M3U export, file drag/drop. HLS manifests are treated as one source stream, not a list of segments masquerading as channels.
 - Browser preview using HTML video, fullscreen, retry and fit/fill, subject to browser codec/HLS support.
@@ -49,8 +49,9 @@ Run `python backend/server.py` with FFmpeg/FFprobe installed, or build/run the D
 - Audit and implement authenticated Stalker adapter with controlled pagination, session diagnostics and supported provider variants. Existing adapter is not claimed verified.
 - Complete Xtream episodes/EPG and structured server errors.
 - Sustained buffering/startup testing, DASH analysis, detailed DNS/TCP/TLS timing, screenshot permissions and reliable geo/DRM evidence. HTTP 403 is AUTH REQUIRED, not proof of a geographic restriction.
-- Full Kotlin native navigation/local database/file picker and WorkManager job integration. Current shell is Java/WebView with a genuinely native Media3 preview; it is not yet the requested full Kotlin app.
-- Native LibVLC fallback is NOT IMPLEMENTED and NOT TESTED.
+- Full Kotlin native navigation/local database/file picker. Current shell remains Java/WebView with native Media3 and Kotlin LibVLC previews; it is not yet the requested full Kotlin app.
+- Kotlin WorkManager backend job submission/polling is implemented with connectivity constraints and bounded retries. Secrets and pending signed URLs are encrypted with Android Keystore AES-GCM; WorkManager inputs contain only opaque references. Configure the backend in Settings, then use manual Stream Analyzer to enqueue a native job. Device/process-restart tests are TEST NOT COMPLETED.
+- Native LibVLC fallback is now implemented in Kotlin as a separate native surface with audio/subtitle selection. Device playback is TEST NOT COMPLETED. Library ABI/16 KB page-size and distribution licensing checks remain required before a Play release.
 - All live integration/device tests from the user's acceptance checklist remain mandatory.
 
 No channel redistribution, DRM extraction, authentication bypass or mass scanning is implemented.

@@ -64,6 +64,11 @@ public class PreviewActivity extends Activity {
     });
     for(Button b:new Button[]{retry,fit,full})actions.addView(b,new LinearLayout.LayoutParams(0,-2,1));
     root.addView(actions);
+    Button vlc=new Button(this);vlc.setText("VLC NATIVE FALLBACK");vlc.setOnClickListener(v->{
+      if(player!=null){view.setPlayer(null);player.release();player=null;}
+      android.content.Intent intent=new android.content.Intent(this,VlcPreviewActivity.class);
+      intent.putExtra("url",url);intent.putExtra("title",title);startActivity(intent);
+    });root.addView(vlc);
     Button close=new Button(this);close.setText("MBYLL PREVIEW");close.setOnClickListener(v->finish());root.addView(close);
     setContentView(root);
     if(url==null||!(url.startsWith("http://")||url.startsWith("https://"))){status.setText("URL e pavlefshme");return;}

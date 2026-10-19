@@ -27,6 +27,18 @@ public class MainActivity extends Activity {
   private final ExecutorService io=Executors.newFixedThreadPool(3);
   private boolean trustedPage=false;
   public class NativeHttp {
+    @JavascriptInterface public String configureBackend(String base,String token){
+      if(!trustedPage)return "UNTRUSTED";
+      try{NativeJobs.configure(MainActivity.this,base,token);return "OK";}catch(Exception e){return "CONFIGURATION ERROR";}
+    }
+    @JavascriptInterface public String enqueueAnalysis(String url,String name){
+      if(!trustedPage)return "UNTRUSTED";
+      try{return NativeJobs.enqueue(MainActivity.this,url,name);}catch(Exception e){return "QUEUE ERROR";}
+    }
+    @JavascriptInterface public void logoutBackend(){
+      if(trustedPage)NativeJobs.logout(MainActivity.this);
+    }
+
     @JavascriptInterface public void preview(String url,String title,String mode){
       if(!trustedPage)return;
       try {
