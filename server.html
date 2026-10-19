@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="sq"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LazyMapper • Serverat</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:14px;background:#031323;color:#fff;font-family:Arial}.w{max-width:1000px;margin:auto}.p{background:#08243b;border:1px solid #28648e;border-radius:22px;padding:17px;margin-bottom:13px}h1{margin:0}.ref{display:inline-block;background:#eab91e;color:#102033;border-radius:30px;padding:9px 16px;font-weight:900;margin-top:12px}.tabs,.f{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.f{grid-template-columns:1fr 1fr;margin-top:10px}button,select,input{width:100%;padding:12px;border-radius:13px;border:1px solid #356b91;background:#071a2b;color:#fff;font-weight:800}.on{background:#eab91e;color:#071523}.item{padding:11px;border:1px solid #285978;border-radius:13px;margin-top:7px}.m{font-size:11px;color:#a6bfd1;margin-top:5px}.err{color:#ff9b9b}.ok{color:#9effb4}@media(max-width:650px){.tabs{grid-template-columns:1fr 1fr}}
+</style></head><body><div class="w">
+<div class="p"><a href="./ballina.html" style="color:#b6dfff">← Ballina</a><h1 id="heading">🗄 SERVER_01</h1><div>LazyMapper Pro • Server Destination</div><div class="ref" id="reference">REFERENCE: SERVER_01</div><div class="f"><label for="serverSelect">Zgjidh serverin</label><select id="serverSelect"></select></div></div>
+<div class="p"><div class="tabs"><button class="on" data-t="LIVE">📺 LIVE</button><button data-t="24_7">🔁 24/7</button><button data-t="VOD">🎬 VOD</button><button data-t="SERIES">📚 SERIES</button></div><div class="f"><select id="co" aria-label="Shteti"></select><select id="ca" aria-label="Kategoria"></select></div><input id="q" placeholder="🔎 Kërko..." style="margin-top:8px"><div id="st" class="m">Duke lexuar...</div></div><div id="ls" class="p"></div></div>
+<script>
+'use strict';
+const API="https://script.google.com/macros/s/AKfycbysBEFikuB_VIK0yIKXZ1-hiRL2P9mZIchLcP0_T4g-9xj1p5HJOkVborf6AD2HBP66/exec";
+const $=id=>document.getElementById(id);
+const v=(x,...keys)=>{for(const k of keys)if(x&&x[k]!=null&&String(x[k]).trim())return String(x[k]).trim();return""};
+let typ="LIVE",rows=[],loadToken=0;
+const validServer=s=>/^SERVER_(0[1-9]|1[0-9]|20)$/.test(s);
+let SERVER_ID=new URLSearchParams(location.search).get('server')||'SERVER_01';
+if(!validServer(SERVER_ID))SERVER_ID='SERVER_01';
+for(let i=1;i<=20;i++){const id='SERVER_'+String(i).padStart(2,'0');$('serverSelect').add(new Option(id,id))}
+$('serverSelect').value=SERVER_ID;
+function setServer(s){if(!validServer(s))return;SERVER_ID=s;$('heading').textContent='🗄 '+s;$('reference').textContent='REFERENCE: '+s;history.replaceState(null,'','?server='+encodeURIComponent(s));load()}
+$('serverSelect').onchange=e=>setServer(e.target.value);
+function jsonpPage(type,offset,limit,token){
+ return new Promise((resolve,reject)=>{
+ const cb='lm_'+SERVER_ID+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+ const sc=document.createElement('script');let done=false;
+ const cleanup=()=>{clearTimeout(timer);try{delete window[cb]}catch(e){window[cb]=undefined}sc.remove()};
+ const timer=setTimeout(()=>{if(done)return;done=true;cleanup();reject(Error('API timeout'))},20000);
+ window[cb]=data=>{if(done)return;done=true;cleanup();resolve(token===loadToken?data:{cancelled:true})};
+ sc.onerror=()=>{if(done)return;done=true;cleanup();reject(Error('API nuk u lidh'))};
+ sc.src=API+'?action=listJsonp&serverId='+encodeURIComponent(SERVER_ID)+'&type='+encodeURIComponent(type)+'&offset='+offset+'&limit='+limit+'&callback='+encodeURIComponent(cb)+'&_='+Date.now();
+ document.head.append(sc);
+ })}
+function option(select,label,value){select.add(new Option(label,value))}
+function filters(){const co=$('co');co.replaceChildren();option(co,'🌍 Të gjitha shtetet','');const cs=[...new Set(rows.map(x=>v(x,'COUNTRY','country')||'Other'))].sort((a,b)=>a.localeCompare(b));cs.forEach(x=>option(co,x,x));cats()}
+function cats(){const ca=$('ca'),c=$('co').value;ca.replaceChildren();option(ca,'📂 Të gjitha kategoritë','');const ks=[...new Set(rows.filter(x=>!c||(v(x,'COUNTRY','country')||'Other')===c).map(x=>v(x,'CATEGORY','category')||'General'))].sort((a,b)=>a.localeCompare(b));ks.forEach(x=>option(ca,x,x))}
+function render(){const c=$('co').value,k=$('ca').value,z=$('q').value.trim().toLowerCase();const a=rows.filter(x=>(!c||(v(x,'COUNTRY','country')||'Other')===c)&&(!k||(v(x,'CATEGORY','category')||'General')===k)&&(!z||v(x,'NAME','name').toLowerCase().includes(z)));$('st').textContent=SERVER_ID+' • '+typ+' • '+a.length+'/'+rows.length;const ls=$('ls');ls.replaceChildren();if(!a.length){ls.textContent='Nuk ka të dhëna në '+typ;return}for(const x of a){const d=document.createElement('div');d.className='item';const b=document.createElement('b');b.textContent=v(x,'NAME','name')||'(pa emër)';const m=document.createElement('div');m.className='m';m.textContent='🌍 '+(v(x,'COUNTRY','country')||'Other')+' • 📂 '+(v(x,'CATEGORY','category')||'General')+' • '+typ;d.append(b,m);ls.append(d)}}
+async function load(){const token=++loadToken,server=SERVER_ID,kind=typ;const st=$('st');st.className='m';st.textContent='Po lexohet '+server+' • '+kind+'...';$('ls').replaceChildren();try{const all=[];let offset=0,total=1,guard=0;while(offset<total&&guard++<100){const j=await jsonpPage(kind,offset,500,token);if(token!==loadToken||j?.cancelled)return;if(!j||j.ok!==true||!Array.isArray(j.items))throw Error(j?.error||'Përgjigje API e pavlefshme');total=Number(j.total??j.items.length);if(!Number.isFinite(total)||total<0)throw Error('Total i pavlefshëm');all.push(...j.items);if(!j.items.length)break;offset+=j.items.length;st.textContent='Po lexohet '+server+' • '+kind+' • '+offset+'/'+total}if(token!==loadToken)return;if(offset<total)throw Error('Ngarkimi u ndërpre para përfundimit: '+offset+'/'+total);rows=all;filters();render();st.className='m ok'}catch(e){if(token!==loadToken)return;rows=[];$('co').replaceChildren();$('ca').replaceChildren();st.className='m err';st.textContent='Gabim: '+e.message;$('ls').textContent='Nuk u lexuan të dhënat e '+server+'.'}}
+document.querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{document.querySelectorAll('button[data-t]').forEach(x=>x.classList.remove('on'));b.classList.add('on');typ=b.dataset.t;load()});
+$('co').onchange=()=>{cats();render()};$('ca').onchange=render;$('q').oninput=render;setServer(SERVER_ID);
+</script></body></html>
