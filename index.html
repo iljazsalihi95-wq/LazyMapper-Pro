@@ -29,6 +29,8 @@ nav button.on,.gold{background:#eab91e;color:#071523}.hero{background:linear-gra
 <section id="settings" class="page hidden"><div class="card"><h2>Private Backend</h2><p>Vendos adresën HTTPS të API-së së instaluar dhe token-in e administratorit. Në web token-i mbahet vetëm në memorie; APK-ja e ruan të enkriptuar me Android Keystore për WorkManager. Ky konfigurim nuk ndryshon serverët ekzistues LazyTV.</p><input id="backendUrl" placeholder="https://mapper.example.com"><input id="backendToken" type="password" autocomplete="off" placeholder="Admin token"><button id="connectBackend">Lidhu / kontrollo API</button><button id="disconnectBackend">Dil nga sesioni</button><div id="backendStatus" class="m">Backend i pakonfiguruar — testimi në background nuk është aktiv.</div></div></section>
 <dialog id="webPreview" style="width:95vw;max-width:1100px;background:#071a2b;color:white;border:1px solid #356b91;border-radius:18px"><h3 id="previewName"></h3><video id="previewVideo" controls playsinline style="width:100%;max-height:65vh;background:black"></video><div id="previewStatus"></div><div class="grid"><button id="previewRetry">Retry</button><button id="previewFullscreen">Fullscreen</button><button id="previewRatio">Fit / Fill</button><button id="previewClose">Mbyll</button></div></dialog>
 </div><script>
+// One session-scoped import key. Never commit or persist credentials.
+function lmImportKey(field){return (field&&field.value.trim()) || (document.getElementById("backendToken")?.value.trim()||"");}
 // Explicit DOM references: never rely on browser window-named properties (notably window.status).
 const servers=document.getElementById("servers");
 const serverBtns=document.getElementById("serverBtns");
@@ -231,7 +233,7 @@ async function lmUploadBatch(pack,apiKey){
 document.getElementById("lmUploadStop").onclick=()=>{lmStopUpload=true;lmUploadStatus.textContent+=" • Ndalimi u kërkua"};
 document.getElementById("lmUploadStart").onclick=async()=>{
  if(lmUploading)return;
- const key=lmUploadKey.value.trim();if(!key){alert("Shkruaj API key.");return}
+ const key=lmImportKey(lmUploadKey);if(!key){alert("Konfiguro çelësin e importBatch te Settings ose në fushën e importit.");return}
  const raw=sessionStorage.getItem("LM_PENDING_IMPORT");if(!raw){alert("Përgatit kanalet nga Xtream fillimisht.");return}
  let job;try{job=JSON.parse(raw)}catch(e){alert("Paketa e pavlefshme");return}
  const fingerprint=job.serverId+"|"+job.type+"|"+job.items.length+"|"+(job.items[0]?.SOURCE_ID||"")+"|"+(job.items[job.items.length-1]?.SOURCE_ID||"");
@@ -294,7 +296,7 @@ async function lmImport(items,serverId,source,key,progress,shouldStop){
 }
 mSend.onclick=async()=>{
  if(mUploadBusy)return;if(!mRows.length){mUploadStatus.textContent="Ngarko M3U së pari.";return}
- const key=mKey.value.trim();if(!key){mUploadStatus.textContent="Shkruaj API key.";return}
+ const key=lmImportKey(mKey);if(!key){mUploadStatus.textContent="Konfiguro çelësin e importBatch te Settings ose në fushën e importit.";return}
  mUploadBusy=true;mUploadStop=false;mSend.disabled=true;
  try{
   const candidates=mRows.filter(x=>(!m3uCategory.value||x.group===m3uCategory.value)&&(!m3uCountry.value||x.country===m3uCountry.value)&&(!m3uSearch.value||x.name.toLowerCase().includes(m3uSearch.value.toLowerCase())));
@@ -340,12 +342,12 @@ sConnect.onclick=async()=>{
  finally{sBusy=false;sConnect.disabled=false}
 };
 sTest.onclick=async()=>{if(sBusy)return;sBusy=true;sTest.disabled=true;try{let i=0,w=0;const a=sFilters();for(const x of a){try{if(!x.cmd){x.test="UNKNOWN";continue}if(!x.url){const j=await sGet("create_link",{cmd:x.cmd});x.url=j.stream||""}x.test=x.url?await lmProbe(x.url):"UNKNOWN"}catch(e){x.test="UNKNOWN"}if(x.test==="WORKING")w++;i++;if(i%10===0||i===a.length){sProgress.textContent="TEST "+i+"/"+a.length+" • WORKING "+w;sRender()}}sProgress.textContent="Përfundoi • WORKING "+w+"/"+a.length}catch(e){sProgress.textContent="Gabim: "+e.message}finally{sBusy=false;sTest.disabled=false}};
-sSend.onclick=async()=>{if(sBusy)return;const key=sKey.value.trim();if(!key){sProgress.textContent="Shkruaj API key.";return}const a=sFilters();if(a.some(x=>x.test==="NOT TESTED")){sProgress.textContent="Shtyp TESTO KANALET përpara bartjes.";return}const working=a.filter(x=>x.test==="WORKING");if(!working.length){sProgress.textContent="Asnjë kanal WORKING për bartje.";return}sBusy=true;sSend.disabled=true;try{const items=working.map(x=>({id:"STALKER_"+x.id,sourceId:x.id,type:"LIVE",country:x.country,countryCode:"XX",category:x.category,groupTitle:x.category,name:x.name,url:x.url,streamUrl:x.url,status:"WORKING"}));const n=await lmImport(items,sDest.value,"STALKER",key,(n,total)=>{sProgress.textContent="U konfirmuan "+n+"/"+total+" • "+sDest.value},()=>false);sProgress.textContent="✅ API konfirmoi "+n+" kanale në "+sDest.value}catch(e){sProgress.textContent="Gabim bartjeje: "+e.message}finally{sBusy=false;sSend.disabled=false;sKey.value=""}};
+sSend.onclick=async()=>{if(sBusy)return;const key=lmImportKey(sKey);if(!key){sProgress.textContent="Konfiguro çelësin e importBatch te Settings ose në fushën e importit.";return}const a=sFilters();if(a.some(x=>x.test==="NOT TESTED")){sProgress.textContent="Shtyp TESTO KANALET përpara bartjes.";return}const working=a.filter(x=>x.test==="WORKING");if(!working.length){sProgress.textContent="Asnjë kanal WORKING për bartje.";return}sBusy=true;sSend.disabled=true;try{const items=working.map(x=>({id:"STALKER_"+x.id,sourceId:x.id,type:"LIVE",country:x.country,countryCode:"XX",category:x.category,groupTitle:x.category,name:x.name,url:x.url,streamUrl:x.url,status:"WORKING"}));const n=await lmImport(items,sDest.value,"STALKER",key,(n,total)=>{sProgress.textContent="U konfirmuan "+n+"/"+total+" • "+sDest.value},()=>false);sProgress.textContent="✅ API konfirmoi "+n+" kanale në "+sDest.value}catch(e){sProgress.textContent="Gabim bartjeje: "+e.message}finally{sBusy=false;sSend.disabled=false;sKey.value=""}};
 // Initialization follows backend settings setup.
 
 
 function lmOpenPreview(url,name){
- if(!/^https?:\/\//i.test(String(url||""))){alert("Kjo linjë nuk ka URL reale të riprodhimit. Duhet CREATE_LINK / URL.");return;}
+ if(!/^https?:\/\//i.test(String(url||""))){alert("Nuk ka URL HTTP/HTTPS të verifikuar për këtë hyrje. PREVIEW nuk mund të luajë vetëm emrin e kanalit. Verifiko lidhjen dhe përdor CREATE_LINK vetëm nëse API-ja e autorizuar e mbështet.");return;}
  if(window.LazyMapperNative&&typeof window.LazyMapperNative.preview==="function"){
    window.LazyMapperNative.preview(String(url),String(name||"Kanal"),"AUTO");
  }else{
