@@ -21,7 +21,9 @@ Backup: `backup/pre-mapper-audit-20261019` at `6a88cbf8c41fded6d25f6450864c64f85
 
 Local: 10 Python tests PASS, including actual decoding of locally generated MPEG-TS media, malformed media rejection, HLS fixtures, authentication and durable queue recovery. Node M3U roundtrip and UI JavaScript syntax tests PASS.
 
-Browser visual test: TEST NOT COMPLETED locally — Playwright is present but its Chromium executable is absent.
+Chromium CI phone (390px) and desktop (1440px): PASS for navigation, M3U import, settings and uncaught JavaScript errors. Screenshots from CI were inspected; the imported channel remains NOT TESTED. Local Chromium was absent, so browser tests ran in GitHub Actions.
+
+Native Media3/LibVLC/WorkManager Kotlin compilation: PASS in run https://github.com/iljazsalihi95-wq/LazyMapper-Pro/actions/runs/39297645250 (commit 9b4b33d51bb131c22c1458c1c6f98d8ecee94817). Compilation is not device playback testing.
 
 Actual STB/Stalker credentials, real Xtream account, real stream playback on an Android device, Media3 device playback, AppCreator24 file/download behavior: TEST NOT COMPLETED. No authorized integration fixture/account was supplied in this task.
 

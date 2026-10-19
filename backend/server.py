@@ -88,7 +88,7 @@ def handler(queue, token, origins):
         def authorized(self):
             origin = self.headers.get('Origin')
             return (not origin or origin in origins) and hmac.compare_digest(
-                self.headers.get('Authorization', ''), 'Bearer '+token)
+                self.headers.get('Authorization', '').encode('utf-8'), ('Bearer '+token).encode('utf-8'))
 
         def send_api_headers(self, code, content_type='application/json'):
             self.send_response(code)
@@ -150,6 +150,8 @@ def handler(queue, token, origins):
                 if not 0 < size <= 16384:
                     raise ValueError('Request size invalid')
                 body = json.loads(self.rfile.read(size))
+                if not isinstance(body, dict):
+                    raise ValueError('Object required')
                 url = body.get('url', '')
                 if not isinstance(url, str) or len(url) > 8192:
                     raise ValueError('URL size invalid')

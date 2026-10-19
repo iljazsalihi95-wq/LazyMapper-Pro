@@ -154,9 +154,9 @@ def decode_sample(data, deadline):
             remaining = deadline-time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            return subprocess.run(args, capture_output=True, timeout=min(8, remaining))
-        probe = run(['ffprobe', '-v', 'error', '-protocol_whitelist', 'file,pipe',
-                     '-show_streams', '-show_format', '-of', 'json', path])
+            return subprocess.run(args, input=data, capture_output=True, timeout=min(8, remaining))
+        probe = run(['ffprobe', '-v', 'error', '-protocol_whitelist', 'pipe',
+                     '-show_streams', '-show_format', '-of', 'json', 'pipe:0'])
         if probe.returncode:
             return {'playback': 'FAILED', 'error': 'Media sample was not recognized'}
         info = json.loads(probe.stdout)
@@ -164,8 +164,8 @@ def decode_sample(data, deadline):
         av = [s for s in streams if s.get('codec_type') in ('video', 'audio')]
         if not av:
             return {'playback': 'FAILED', 'error': 'No audio/video tracks'}
-        decoded = run(['ffmpeg', '-v', 'error', '-xerror', '-protocol_whitelist', 'file,pipe',
-                       '-i', path, '-t', '2', '-map', '0:v:0?', '-map', '0:a:0?',
+        decoded = run(['ffmpeg', '-v', 'error', '-xerror', '-protocol_whitelist', 'pipe',
+                       '-i', 'pipe:0', '-t', '2', '-map', '0:v:0?', '-map', '0:a:0?',
                        '-progress', 'pipe:1', '-f', 'null', '-'])
         # Progress alone at EOF is not evidence of a decoded frame/audio sample.
         progress = decoded.stdout.decode(errors='replace')
