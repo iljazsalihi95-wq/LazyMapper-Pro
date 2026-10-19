@@ -26,7 +26,7 @@ function jsonpPage(serverId,type,offset,limit,token){
  const timer=setTimeout(()=>{if(done)return;done=true;cleanup();reject(Error('API timeout'))},20000);
  window[cb]=data=>{if(done)return;done=true;cleanup();resolve(token===loadToken?data:{cancelled:true})};
  sc.onerror=()=>{if(done)return;done=true;cleanup();reject(Error('API nuk u lidh'))};
- sc.src=API+'?action=listJsonp&serverId='+encodeURIComponent(SERVER_ID)+'&type='+encodeURIComponent(type)+'&offset='+offset+'&limit='+limit+'&callback='+encodeURIComponent(cb)+'&_='+Date.now();
+ sc.src=API+'?action=listJsonp&serverId='+encodeURIComponent(serverId)+'&type='+encodeURIComponent(type)+'&offset='+offset+'&limit='+limit+'&callback='+encodeURIComponent(cb)+'&_='+Date.now();
  document.head.append(sc);
  })}
 function option(select,label,value){select.add(new Option(label,value))}
