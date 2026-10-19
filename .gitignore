@@ -5,3 +5,5 @@ __pycache__/
 local.properties
 .gradle/
 **/build/
+node_modules/
+ui-checks/
