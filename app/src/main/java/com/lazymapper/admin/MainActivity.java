@@ -51,15 +51,18 @@ public class MainActivity extends Activity {
           c.setRequestProperty("User-Agent","VLC/3.0.20 LibVLC/3.0.20");
           c.setRequestProperty("Range","bytes=0-1023");
           int status=c.getResponseCode();
-          if(status==404||status==410)state="DEAD";
+          if(status==401||status==403)state="AUTH REQUIRED";
+          else if(status==451)state="UNKNOWN";
+          else if(status==404||status==410)state="UNAVAILABLE";
           else if(status==200||status==206){
             String ct=c.getContentType();ct=ct==null?"":ct.toLowerCase();
             if(!ct.contains("text/html")){
               InputStream in=c.getInputStream();byte[] sample=new byte[1024];int n=in.read(sample);in.close();
-              if(n>0)state="WORKING";
+              // Receiving bytes is not a playback test.
+              if(n>0)state="UNKNOWN";
             }
           }
-        }catch(Exception ignored){}finally{if(c!=null)c.disconnect();}
+        }catch(java.net.SocketTimeoutException timeout){state="TIMEOUT";}catch(Exception ignored){}finally{if(c!=null)c.disconnect();}
         JSONObject obj=new JSONObject();try{obj.put("state",state);}catch(Exception ignored){}
         String js="window.LazyMapperProbeReply&&window.LazyMapperProbeReply("+JSONObject.quote(requestId)+","+obj.toString()+")";
         runOnUiThread(()->{if(trustedPage&&web!=null)web.evaluateJavascript(js,null);});
@@ -118,7 +121,14 @@ public class MainActivity extends Activity {
     super.onActivityResult(requestCode,resultCode,data);
     if(requestCode==FILE_PICKER&&fileCallback!=null){Uri[] out=(resultCode==RESULT_OK&&data!=null&&data.getData()!=null)?new Uri[]{data.getData()}:null;fileCallback.onReceiveValue(out);fileCallback=null;}
   }
+  @Override protected void onDestroy(){
+    io.shutdownNow();
+    if(fileCallback!=null){fileCallback.onReceiveValue(null);fileCallback=null;}
+    if(web!=null){web.removeJavascriptInterface("LazyMapperNative");web.destroy();web=null;}
+    super.onDestroy();
+  }
   @Override public void onBackPressed() {
     if(web!=null && web.canGoBack()) web.goBack(); else super.onBackPressed();
   }
 }
+

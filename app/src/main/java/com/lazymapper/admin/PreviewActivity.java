@@ -20,6 +20,9 @@ public class PreviewActivity extends Activity {
   private PlayerView view;
   private TextView status;
   private String url;
+  private String currentMode="AUTO";
+  private boolean fullscreen=false;
+  private int resizeMode=androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
   @Override public void onCreate(Bundle state){
     super.onCreate(state);
     url=getIntent().getStringExtra("url");
@@ -44,16 +47,37 @@ public class PreviewActivity extends Activity {
       controls.addView(b,new LinearLayout.LayoutParams(0,-2,1));
     }
     root.addView(controls);
+    LinearLayout actions=new LinearLayout(this);
+    Button retry=new Button(this);retry.setText("RETRY");retry.setOnClickListener(v->play(currentMode));
+    Button fit=new Button(this);fit.setText("FIT / FILL");fit.setOnClickListener(v->{
+      resizeMode=resizeMode==androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT?
+        androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM:androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
+      view.setResizeMode(resizeMode);
+    });
+    Button full=new Button(this);full.setText("FULLSCREEN");full.setOnClickListener(v->{
+      fullscreen=!fullscreen;
+      heading.setVisibility(fullscreen?View.GONE:View.VISIBLE);
+      controls.setVisibility(fullscreen?View.GONE:View.VISIBLE);
+      status.setVisibility(fullscreen?View.GONE:View.VISIBLE);
+      getWindow().getDecorView().setSystemUiVisibility(fullscreen?
+        View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY:View.SYSTEM_UI_FLAG_VISIBLE);
+    });
+    for(Button b:new Button[]{retry,fit,full})actions.addView(b,new LinearLayout.LayoutParams(0,-2,1));
+    root.addView(actions);
     Button close=new Button(this);close.setText("MBYLL PREVIEW");close.setOnClickListener(v->finish());root.addView(close);
     setContentView(root);
     if(url==null||!(url.startsWith("http://")||url.startsWith("https://"))){status.setText("URL e pavlefshme");return;}
     play(mode==null?"AUTO":mode);
   }
   private void play(String kind){
+    currentMode=kind;
     if(player!=null){view.setPlayer(null);player.release();player=null;}
     status.setText("DUKE TESTUAR • "+kind);
     player=new ExoPlayer.Builder(this).build();
     view.setPlayer(player);
+    view.setResizeMode(resizeMode);
+    view.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
+    view.setShowSubtitleButton(true);
     player.addListener(new Player.Listener(){
       @Override public void onPlaybackStateChanged(int state){
         if(state==Player.STATE_READY)status.setText("READY • "+kind+" • video u përgatit (kontrollo figurën dhe zërin)");
@@ -61,7 +85,7 @@ public class PreviewActivity extends Activity {
         else if(state==Player.STATE_ENDED)status.setText("PËRFUNDOI • "+kind);
       }
       @Override public void onPlayerError(PlaybackException error){
-        status.setText("GABIM • "+kind+" • "+error.getErrorCodeName()+": "+error.getMessage());
+        status.setText("GABIM • "+kind+" • "+error.getErrorCodeName());
       }
     });
     MediaItem.Builder item=new MediaItem.Builder().setUri(Uri.parse(url));
@@ -70,5 +94,6 @@ public class PreviewActivity extends Activity {
     else if("MPEG-TS".equals(kind))item.setMimeType(MimeTypes.VIDEO_MP2T);
     player.setMediaItem(item.build());player.prepare();player.play();
   }
+  @Override protected void onStart(){super.onStart();if(player==null&&url!=null&&(url.startsWith("http://")||url.startsWith("https://")))play(currentMode);}
   @Override protected void onStop(){super.onStop();if(player!=null){view.setPlayer(null);player.release();player=null;}}
 }

@@ -3,8 +3,24 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: python -m unittest discover -s tests -v
+      - run: node tests/test_m3u.cjs
   build:
+    needs: checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,3 +39,4 @@ jobs:
         with:
           name: LazyMapper-Admin-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
