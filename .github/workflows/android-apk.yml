@@ -41,7 +41,10 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Copy current LazyMapper UI into Android assets
-        run: |\n          mkdir -p app/src/main/assets\n          cp index.html app/src/main/assets/index.html\n          cp ballina.html server.html diagnostika.html app/src/main/assets/
+        run: |
+          mkdir -p app/src/main/assets
+          cp index.html app/src/main/assets/index.html
+          cp ballina.html server.html diagnostika.html app/src/main/assets/
       - name: Build debug APK
         run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
