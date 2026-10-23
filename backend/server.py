@@ -58,7 +58,13 @@ class Queue:
             if not row:
                 return False
             db.execute("UPDATE jobs SET state='RUNNING', attempts=attempts+1,updated=? WHERE id=?", (time.time(), row['id']))
-        result = analyze(row['url'], self.hosts)
+        try:
+            result = analyze(row['url'], self.hosts)
+        except Exception:
+            # A failed analyzer must not leave this job RUNNING forever.
+            # Exception text may contain credentials; retain a fixed diagnostic only.
+            result = {'status': 'UNKNOWN', 'playback': 'NOT TESTED',
+                      'error': 'Analyzer failed unexpectedly'}
         # Signed/query URLs remain only in the private job while pending. Do not persist them in history.
         result.pop('final_url', None)
         retry = result['status'] == 'TIMEOUT' and row['attempts'] < 1

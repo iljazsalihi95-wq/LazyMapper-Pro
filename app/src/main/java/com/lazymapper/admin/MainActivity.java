@@ -35,6 +35,10 @@ public class MainActivity extends Activity {
       if(!trustedPage)return "UNTRUSTED";
       try{return NativeJobs.enqueue(MainActivity.this,url,name);}catch(Exception e){return "QUEUE ERROR";}
     }
+    @JavascriptInterface public String backgroundState(){
+      if(!trustedPage)return "{\"error\":\"UNTRUSTED\"}";
+      try{return NativeJobs.state(MainActivity.this);}catch(Exception e){return "{\"error\":\"Status unavailable\"}";}
+    }
     @JavascriptInterface public void logoutBackend(){
       if(trustedPage)NativeJobs.logout(MainActivity.this);
     }
@@ -143,4 +147,3 @@ public class MainActivity extends Activity {
     if(web!=null && web.canGoBack()) web.goBack(); else super.onBackPressed();
   }
 }
-

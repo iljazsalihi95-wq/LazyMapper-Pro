@@ -22,6 +22,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import org.json.JSONObject
+import org.json.JSONArray
 
 /** WorkManager database contains only opaque references, never tokens or signed URLs. */
 class JobVault(private val context: Context) {
@@ -66,6 +67,18 @@ object NativeJobs {
         JobVault(context).save("backend", JSONObject().put("base", base.trimEnd('/')).put("token", token))
     }
 
+    @JvmStatic fun state(context: Context): String {
+        val configured = JobVault(context).read("backend") != null
+        val jobs = JSONArray()
+        WorkManager.getInstance(context).getWorkInfosByTag("mapper-private").get(2, TimeUnit.SECONDS)
+            .takeLast(30).forEach { work ->
+                jobs.put(JSONObject().put("id", work.id.toString()).put("state", work.state.name)
+                    .put("status", work.outputData.getString("status") ?: "")
+                    .put("error", work.outputData.getString("error") ?: ""))
+            }
+        return JSONObject().put("configured", configured).put("jobs", jobs).toString()
+    }
+
     @JvmStatic fun logout(context: Context) {
         WorkManager.getInstance(context).cancelAllWorkByTag("mapper-private")
         JobVault(context).clear()
@@ -91,7 +104,7 @@ class MapperWorker(context: Context, parameters: WorkerParameters) : Worker(cont
         val id = inputData.getString("reference") ?: return Result.failure()
         val vault = JobVault(applicationContext)
         try {
-            val config = vault.read("backend") ?: run { vault.remove(id); return Result.failure() }
+            val config = vault.read("backend") ?: run { vault.remove(id); return Result.failure(Data.Builder().putString("error", "Backend not configured").build()) }
             val job = vault.read(id) ?: return Result.failure()
             fun api(path: String, body: JSONObject? = null): JSONObject {
                 val conn = URI(config.getString("base") + path).toURL().openConnection() as HttpURLConnection
@@ -146,7 +159,7 @@ class MapperWorker(context: Context, parameters: WorkerParameters) : Worker(cont
             return if (runAttemptCount < 4) Result.retry() else Result.failure().also { vault.remove(id) }
         } catch (_: SecurityException) {
             vault.remove(id)
-            return Result.failure()
+            return Result.failure(Data.Builder().putString("error", "AUTH REQUIRED").build())
         } catch (_: Exception) {
             return if (runAttemptCount < 4) Result.retry() else Result.failure().also { vault.remove(id) }
         }
