@@ -1,0 +1,17 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(__dirname+'/../index.html','utf8');
+const script=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
+new vm.Script(script);
+const c=vm.createContext({Intl});
+vm.runInContext(script.slice(script.indexOf('function lmCountryText'),script.indexOf('\nfunction sFilters')),c);
+for(const [input,expected] of [['AL | RTSH','Albania'],['DE: ZDF','Germany'],['Italy Sport','Italy'],['Kosovo Sport','Kosovo'],['MK | Kanal 5','North Macedonia'],['Austria ORF','Austria'],['ARI BEIN SPORT','Unidentified'],['###### ARABIC ######','Unidentified'],['UK: BBC','United Kingdom'],['Canada News','Canada'],['Japan NHK','Japan']])assert.equal(c.sCountryFromName(input),expected,input);
+assert.equal(c.sCountryFromName('BBC','GB'),'United Kingdom');
+assert(c.lmIsGroupHeading({name:'###### ARABIC ######'}));
+assert(!c.lmIsGroupHeading({name:'###### ARABIC ######',cmd:'ffmpeg http://example.com/live'}));
+vm.runInContext(script.slice(script.indexOf('function parseM3U('),script.indexOf('let mTesting=')),c);
+const url='https://example.com/live?token=private-test&auth=a%2Bb';
+const rows=c.parseM3U('#EXTM3U\n#EXTINF:-1 group-title="AL | News",RTSH\n'+url);
+assert.equal(rows[0].country,'Albania');
+assert(c.exportM3U(rows).includes(url));
+assert(c.exportM3U(c.parseM3U('#EXTM3U\n#EXTINF:-1,Direct\nhttps://example.com/direct')).includes('https://example.com/direct'));
+console.log('PASS: script syntax, 11 country cases, explicit metadata, group heading, token and tokenless M3U preservation');
