@@ -50,7 +50,7 @@ jobs:
           cp index.html app/src/main/assets/index.html
           cp ballina.html server.html diagnostika.html app/src/main/assets/
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: gradle testDebugUnitTest assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: LazyMapper-Admin-APK

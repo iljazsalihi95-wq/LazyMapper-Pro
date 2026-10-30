@@ -37,6 +37,20 @@ const {pathToFileURL}=require('node:url');
    assert.deepEqual(errors,[]);
    await page.close();
   }
+  const nativePage=await browser.newPage();
+  await nativePage.addInitScript(()=>{window.portalCalls=[];window.LazyMapperNative={inspectPortal:(text,id)=>{const p=JSON.parse(text);window.portalCalls.push(p);const data=p.action==='genres'?{ok:true,genres:[{id:'fixture',title:'Fixture'}]}:{ok:true,channels:[]};setTimeout(()=>window.LazyMapperNativeReply(id,{ok:true,text:JSON.stringify(data)}),0);}};});
+  await nativePage.route('**/*',route=>route.request().url().startsWith('file:')?route.continue():route.abort());
+  await nativePage.goto(pathToFileURL(path.resolve('index.html')).href);
+  await nativePage.locator('[data-page=stalker]').click();
+  await nativePage.locator('#sPortal').fill('https://fixture.example/c/');
+  await nativePage.locator('#sMac').fill('00:11:22:33:44:55');
+  await nativePage.locator('#sConnect').click();
+  await nativePage.waitForFunction(()=>document.getElementById('sStatus').textContent.includes('u lexua:'));
+  assert.equal(await nativePage.locator('#importApiKey').inputValue(),'');
+  assert.deepEqual(await nativePage.evaluate(()=>window.portalCalls.map(x=>x.action)),['genres','channels']);
+  assert.equal(await nativePage.evaluate(()=>window.portalCalls.some(x=>'apiKey' in x)),false);
+  await nativePage.close();
+  console.log('Android CONNECT uses the supplied portal session without an administrative key: PASS');
   console.log('Phone/desktop navigation, M3U import and settings: PASS');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

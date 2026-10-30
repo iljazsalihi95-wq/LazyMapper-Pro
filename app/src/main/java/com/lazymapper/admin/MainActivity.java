@@ -26,7 +26,19 @@ public class MainActivity extends Activity {
   private static final int FILE_PICKER=3001;
   private final ExecutorService io=Executors.newFixedThreadPool(3);
   private boolean trustedPage=false;
+  private final NativePortal portalClient=new NativePortal();
   public class NativeHttp {
+    @JavascriptInterface public void inspectPortal(String input,String requestId){
+      if(!trustedPage)return;
+      io.execute(()->{
+        JSONObject reply=new JSONObject();
+        try{JSONObject result=portalClient.inspect(new JSONObject(input));reply.put("ok",true);reply.put("text",result.toString());}
+        catch(Exception e){try{reply.put("ok",false);String message=e.getMessage();reply.put("error",message!=null&&!message.contains("://")?message:"Portal network error");}catch(Exception ignored){}}
+        String js="window.LazyMapperNativeReply&&window.LazyMapperNativeReply("+JSONObject.quote(requestId)+","+reply.toString()+")";
+        runOnUiThread(()->{if(trustedPage&&web!=null)web.evaluateJavascript(js,null);});
+      });
+    }
+
     @JavascriptInterface public String configureBackend(String base,String token){
       if(!trustedPage)return "UNTRUSTED";
       try{NativeJobs.configure(MainActivity.this,base,token);return "OK";}catch(Exception e){return "CONFIGURATION ERROR";}
