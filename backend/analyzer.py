@@ -94,6 +94,8 @@ class Fetcher:
 def http_state(status):
     if status in (401, 403):
         return 'AUTH REQUIRED'
+    if status == 429:
+        return 'RATE LIMITED'
     if status in (404, 410):
         return 'UNAVAILABLE'
     return 'UNKNOWN'

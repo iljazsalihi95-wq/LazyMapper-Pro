@@ -21,6 +21,8 @@ jobs:
       - run: node tests/test_m3u.cjs
       - run: node tests/test_country_repair.cjs
       - run: node tests/test_background_config.cjs
+      - run: node tests/test_gs_worker.cjs
+      - run: node tests/test_gs_v4.cjs
       - run: npm install --no-save --package-lock=false playwright@1.51.1
       - run: npx playwright install --with-deps chromium
       - run: node tests/test_ui.cjs

@@ -7,7 +7,7 @@
 <div class="p"><div class="tabs"><button class="on" data-t="LIVE">📺 LIVE</button><button data-t="24_7">🔁 24/7</button><button data-t="VOD">🎬 VOD</button><button data-t="SERIES">📚 SERIES</button></div><div class="f"><select id="co" aria-label="Shteti"></select><select id="ca" aria-label="Kategoria"></select></div><input id="q" placeholder="🔎 Kërko..." style="margin-top:8px"><div class="f"><button id="refreshList" type="button">↻ Rifresko listën</button><button id="stopPreview" type="button">■ Ndal player-in</button></div><div id="st" class="m" role="status" aria-live="polite">Duke lexuar...</div></div><div id="ls" class="p"></div><div class="p" id="previewPanel"><h2>▶ Preview • Player i integruar</h2><div class="m" id="previewLabel">Zgjidh një kanal ose film për ta provuar.</div><video id="previewVideo" controls playsinline preload="none" style="width:100%;max-height:440px;background:#000;border-radius:13px;margin-top:10px"></video><div class="f"><button id="previewRetry">↻ Provo përsëri</button><button id="previewFullscreen">⛶ Fullscreen</button></div><div id="previewStatus" class="m">Mbështet MP4 dhe HLS kur shfletuesi e lejon. Stream-et e tjera mund të kërkojnë player nativ.</div></div></div>
 <script>
 'use strict';
-const API="https://script.google.com/macros/s/AKfycbysBEFikuB_VIK0yIKXZ1-hiRL2P9mZIchLcP0_T4g-9xj1p5HJOkVborf6AD2HBP66/exec";
+const API="https://script.google.com/macros/s/AKfycbzkIAcq1rqGz3miDPsVS728dESNpBoNjXui_bUOofJMvDed2d73CdE5mHgkECPvuN7wWQ/exec";
 const $=id=>document.getElementById(id);
 const v=(x,...keys)=>{for(const k of keys)if(x&&x[k]!=null&&String(x[k]).trim())return String(x[k]).trim();return""};
 let typ="LIVE",rows=[],loadToken=0;

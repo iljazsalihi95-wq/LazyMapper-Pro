@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="sq"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LazyMapper Pro</title><style>
+*{box-sizing:border-box}body{margin:0;background:#031323;color:#fff;font-family:Arial,sans-serif}.app{max-width:1180px;margin:auto;padding:14px}
+header,.card{background:#08243b;border:1px solid #28648e;border-radius:22px;padding:16px;margin-bottom:12px}header{display:flex;align-items:center;gap:13px}
+.logo{width:62px;height:62px;border:2px solid #eab91e;border-radius:17px;display:grid;place-items:center;background:#061a2b;overflow:hidden}.logo svg{width:52px;height:52px}.ico{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:5px;border-radius:7px;background:#061a2b;border:1px solid #b99120;color:#eab91e;font-size:13px;vertical-align:middle}.grow{flex:1}h1{margin:0;font-size:27px}.sub{color:#a6bfd1;font-size:12px;font-weight:800;margin-top:4px}
+nav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px}button,select,input,textarea{width:100%;padding:12px;border-radius:13px;border:1px solid #356b91;background:#071a2b;color:#fff;font-weight:800}
+nav button.on,.gold{background:#eab91e;color:#071523}.hero{background:linear-gradient(135deg,#0b3656,#071a2b);border-radius:18px;padding:18px}.hero b{font-size:22px}.badge{display:inline-block;background:#eab91e;color:#071523;border-radius:30px;padding:7px 12px;font-size:11px;font-weight:900;margin-top:9px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.servers{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.srv{min-height:72px}.srv.active{background:#eab91e;color:#071523}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}.tabs button.on{background:#eab91e;color:#071523}.item{padding:11px;border:1px solid #285978;border-radius:13px;margin-top:7px}.m{font-size:11px;color:#a6bfd1;margin-top:5px}.ok{color:#9effb4}.err{color:#ff9b9b}.warn{color:#ffd36a}.test-working{color:#9effb4}.test-bad{color:#ff9b9b}.test-unknown{color:#ffd36a}.hidden{display:none}
+@media(max-width:700px){nav{grid-template-columns:repeat(2,1fr)}.servers{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}h1{font-size:22px}}
+</style><script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script></head><body><div class="app">
+<header><div class="logo" aria-label="LazyMapper Pro"><svg viewBox="0 0 64 64" role="img"><rect x="5" y="8" width="54" height="42" rx="9" fill="#071a2b" stroke="#eab91e" stroke-width="3"/><path d="M27 20l17 9-17 9z" fill="#eab91e"/><path d="M18 53h28" stroke="#eab91e" stroke-width="3" stroke-linecap="round"/><circle cx="49" cy="17" r="4" fill="#28648e"/></svg></div><div class="grow"><h1>LazyMapper Pro</h1><div class="sub">IPTV • M3U • EVERYTHING IN ONE</div></div></header>
+<nav><button data-page="stalker"><span class="ico">📡</span>Stalker</button><button data-page="xtream"><span class="ico">⚡</span>Xtream</button><button data-page="m3u"><span class="ico">M3U</span>M3U</button><button class="on" data-page="servers"><span class="ico">🗄</span>Serverat</button><button data-page="register"><span class="ico">TV</span>LazyTV Pro</button><button data-page="diagnostics">Stream Analyzer / History</button><button data-page="settings">Settings</button></nav>
+<section id="servers" class="page"><div class="card hero"><b>🗄 SERVERAT 01–20</b><div class="sub">LazyMapper Pro • Server Destination</div><span class="badge">LIVE • 24/7 • VOD • SERIES</span></div>
+<div class="card"><div class="servers" id="serverBtns"></div><p class="sub">Pamja Saray Dark me player të integruar për çdo server:</p><div class="grid"><a href="#servers" onclick="document.querySelector('[data-page=servers]').click();return false;" style="display:block;padding:12px;border-radius:12px;background:#eab91e;color:#071523;text-align:center;font-weight:900;text-decoration:none">▶ Hap SERVER_01–20 me Preview</a></div></div>
+<div class="card" id="viewer"><h2 id="serverTitle">SERVER_01</h2><div class="tabs"><button class="on" data-type="LIVE">📺 LIVE</button><button data-type="24_7">🔁 24/7</button><button data-type="VOD">🎬 VOD</button><button data-type="SERIES">📚 SERIES</button></div>
+<div class="grid"><select id="country"><option value="">🌍 Të gjitha shtetet</option></select><select id="category"><option value="">📂 Të gjitha kategoritë</option></select></div><input id="search" placeholder="🔎 Kërko..." style="margin-top:8px"><div id="status" class="m"></div></div><div id="list" class="card"></div></section>
+<section id="stalker" class="page hidden"><div class="card hero"><b>📡 STALKER PORTAL</b><div class="sub">LazyMapper Pro • Multi-State Portal Mapping</div><span class="badge">LIVE • MOVIES • SERIES • METADATA</span></div><div class="card"><div class="grid"><input id="sPortal" placeholder="Portal URL"><input id="sMac" placeholder="MAC Address"></div><div class="m">Konfiguro çelësin privat te Settings për lidhjen dhe worker-in.</div><button id="stbProfile" style="margin-top:8px">STB — diagnostiko pajisjen e autorizuar</button><div id="stbStatus" class="m"></div><button id="sConnect" class="gold" style="margin-top:8px">CONNECT</button><div id="sStatus" class="m">CONNECT → STATES → CHANNELS → EXPORT</div></div><div id="sPanel" class="card hidden"><div class="tabs"><button class="on" data-s-type="LIVE">📺 LIVE</button><button data-s-type="VOD">🎬 VOD</button><button data-s-type="SERIES">📚 SERIES</button><button id="sExport">📤 EXPORT</button></div><div class="grid"><select id="sCountry"><option>🌍 Të gjitha shtetet</option></select><select id="sCategory"><option>📂 Të gjitha kategoritë</option></select></div><input id="sSearch" placeholder="🔎 Kërko kanal..." style="margin-top:8px"></div><div id="sList" class="card hidden"></div><div id="sTransfer" class="card hidden"><h3>🔎 TESTO + BART NË SERVER</h3><select id="sDest"></select><input id="sKey" type="password" autocomplete="off" placeholder="API key për importBatch"><button class="gold" id="sTest">⚡ TESTO KANALET</button><button class="gold" id="sSend">🚀 BART VETËM WORKING</button><div id="sProgress" class="m"></div><button id="sBackground" style="margin-top:8px">▶ NIS BARTJEN NË SFOND</button><button id="scriptJobsRefresh">RIFRESKO PUNËT E SKRIPTIT</button><div id="scriptJobs" aria-live="polite"></div></div></section>
+<section id="xtream" class="page hidden"><div class="card hero"><b>⚡ XTREAM CODES</b><div class="sub">LazyMapper Pro • LIVE • VOD/FILMA • SERIES • SERVER_01–20</div><span class="badge">CONNECT • CONTENT • EXPORT</span></div>
+<div class="card"><div class="grid"><input id="xHost" placeholder="Server URL (https://...)"><input id="xUser" placeholder="Username"></div><div class="grid"><input id="xPass" type="password" placeholder="Password"><button class="gold" id="xConnect">LIDHU ME XTREAM</button></div><div id="xStatus" class="m">Kredencialet ruhen vetëm në pajisjen tënde, jo në GitHub.</div></div>
+<div class="card hidden" id="xPanel"><div class="tabs"><button class="on" data-x-type="LIVE">📺 LIVE</button><button data-x-type="VOD">🎬 VOD</button><button data-x-type="SERIES">📚 SERIES</button><button id="xClear">🧹 PASTRO</button></div>
+<div class="grid"><select id="xCategory"><option value="">📂 Të gjitha kategoritë</option></select><input id="xSearch" placeholder="🔎 Kërko..."></div><div id="xCount" class="m"></div><div class="grid"><button id="xTest" class="gold">🔎 TESTO KANALET E FILTRUARA</button><button id="xExport">📥 EKSPORTO M3U</button></div><select id="xExportMode" style="margin-top:8px"><option value="all">Të gjitha (përfshirë të paverifikuarat)</option><option value="working">Vetëm WORKING</option><option value="unverified">Vetëm UNVERIFIED</option></select><div id="xTestStatus" class="m">Testimi dallon WORKING / NOT WORKING / UNVERIFIED. CORS dhe timeout nuk quhen kanale të prishura.</div><div class="grid" style="margin-top:8px"><select id="xDest"></select><button id="xPrepareServer">🗄 TESTO PASTAJ BART NË SERVER</button></div><div id="xServerStatus" class="m"></div></div><div class="card hidden" id="lmUploadPanel"><h3>🔐 Bartje në server me seri të vogla</h3><div class="m">Bartja kryhet në grupe prej 40. Ruhet progresi pas çdo grupi; nëse ndërpritet, vazhdohet pa e nisur nga zero. Mbaje aplikacionin hapur gjatë transferimit; kontrolli në sfond kërkon shërbim Android/server.</div><input id="lmUploadKey" type="password" autocomplete="off" placeholder="API key për importBatch (nuk ruhet)"><button id="lmUploadStart" class="gold">🚀 FILLO / VAZHDO BARTJEN</button><button id="lmUploadStop">■ NDAL PAS GRUPIT</button><div id="lmUploadStatus" class="m">Përgatit kanalet nga Xtream.</div></div><div id="xList" class="card hidden"></div></section>
+<section id="m3u" class="page hidden"><div class="card hero"><b>📋 M3U / M3U8</b><div class="sub">LazyMapper Pro • Playlist Mapping System</div><span class="badge">IMPORT • ORGANIZE • CHANNELS • EXPORT</span></div>
+<div class="card"><input id="m3uUrl" placeholder="🔗 URL e playlistës M3U/M3U8"><button class="gold" id="m3uLoadUrl" style="margin-top:8px">LEXO URL</button><label style="display:block;margin-top:12px">📁 NGARKO SKEDAR M3U / M3U8 / TXT</label><input type="file" id="m3uFile" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" style="margin-top:6px"><textarea id="m3uText" rows="8" placeholder="#EXTM3U&#10;#EXTINF:-1 group-title=&quot;Albania&quot;,Channel..." style="margin-top:8px"></textarea><button id="m3uParse" class="gold" style="margin-top:8px">ANALIZO M3U</button><div id="m3uStatus" class="m"></div></div>
+<div id="m3uPanel" class="card hidden"><div class="grid"><select id="m3uCountry"><option value="">🌍 Të gjitha shtetet</option></select><select id="m3uCategory"><option value="">📂 Të gjitha kategoritë</option></select><input id="m3uSearch" placeholder="🔎 Kërko kanal..."></div></div><div id="m3uTestTools" class="card hidden"><button class="gold" id="m3uTestAll">⚡ TEST ALL CHANNELS</button><button id="m3uStop" style="margin-top:8px">■ STOP</button><button id="m3uWorking" style="margin-top:8px">✓ SHFAQ WORKING</button><div class="m" id="m3uTestProgress">0 tested</div><div class="m warn">WORKING kërkon dekodim real. Konfiguro backend-in te Settings për teste në sfond. HTTP 200 vetëm = UNKNOWN.</div></div><div id="m3uList" class="card hidden"></div><div id="m3uTransfer" class="card hidden"><h3>🚀 Bart kanalet WORKING në SERVER_01–20</h3><select id="mDest"></select><input id="mKey" type="password" autocomplete="off" placeholder="API key (nuk ruhet)"><button id="mSend" class="gold">TESTO + BART WORKING</button><button id="mStopUpload">■ NDAL PAS GRUPIT</button><div id="mUploadStatus" class="m"></div></div></section>
+<section id="register" class="page hidden"><div class="card hero"><b>🔑 REGJISTRO NË LAZYTV PRO</b><div class="sub">Mapper → Server → Device ID + KEY → LazyTV Pro</div></div><div class="card"><div class="grid"><select id="regServer"></select><input id="deviceId" placeholder="Device ID"></div><input id="deviceKey" placeholder="KEY" style="margin-top:8px"><input id="regEndpoint" type="hidden" value="https://script.google.com/macros/s/AKfycbw9JaO_WG1U8YiGYFNA5bhagGD4FQg0wxgMVss76bmsxYyseCocXmacknnLpNz69UEF0A/exec"><div class="m">🔗 Backend LazyTV Pro i lidhur automatikisht</div><button class="gold" id="regButton" style="margin-top:8px" onclick="registerInfo()">TESTO REGJISTRIMIN / STATUSIN</button><button class="gold" style="margin-top:8px;background:#176b51;color:white" onclick="openLazyAdmin()">🔐 HAP PANELIN ADMIN PËR AKTIVIZIM</button><div class="m">Dërgon kërkesë POST login për statusin e pajisjes. Aktivizimi kërkon miratim administratori.</div><div id="regStatus" class="m"></div></div></section>
+<section id="diagnostics" class="page hidden"><div class="card"><h2>Stream Analyzer / Test History</h2><p>Testet vazhdojnë në server edhe kur mbyllet faqja. WORKING = një mostër u dekodua, jo garanci për transmetim pa ndërprerje.</p><input id="analyzerUrl" placeholder="URL e autorizuar HTTP/HTTPS"><button id="analyzeOne">Testo stream-in</button><div id="analyzerStatus" class="m"></div><div class="grid"><button id="historyRefresh">Rifresko historikun</button><button id="historyJson">Eksporto JSON</button><button id="historyCsv">Eksporto CSV</button><button id="exportPlaylist">Eksporto M3U të importuar</button></div><div id="historyList"></div></div></section>
+<section id="settings" class="page hidden"><div class="card"><h2>Çelësi i importit</h2><label for="importApiKey">API key për importBatch</label><input id="importApiKey" type="password" autocomplete="off" placeholder="Çelësi i importit — vetëm për këtë sesion"><p>Ky çelës dërgohet vetëm te API-ja ekzistuese e importit. Nuk është token-i i worker-it dhe nuk ruhet në repository.</p><h2>Private Backend / Background worker</h2><p>Vendos adresën HTTPS të API-së së instaluar dhe token-in e administratorit. Në web token-i mbahet vetëm në memorie; APK-ja e ruan të enkriptuar me Android Keystore për WorkManager. Ky konfigurim nuk ndryshon serverët ekzistues LazyTV.</p><input id="backendUrl" placeholder="https://mapper.example.com"><input id="backendToken" type="password" autocomplete="off" placeholder="Admin token"><button id="connectBackend">Lidhu / kontrollo API</button><button id="disconnectBackend">Dil nga sesioni</button><button id="nativeJobsRefresh">Statusi i punëve Android</button><div id="nativeJobsStatus" class="m"></div><div id="backendStatus" class="m">Backend i pakonfiguruar — testimi në background nuk është aktiv.</div></div></section>
+<dialog id="webPreview" style="width:95vw;max-width:1100px;background:#071a2b;color:white;border:1px solid #356b91;border-radius:18px"><h3 id="previewName"></h3><video id="previewVideo" controls playsinline style="width:100%;max-height:65vh;background:black"></video><div id="previewStatus"></div><div class="grid"><button id="previewRetry">Retry</button><button id="previewFullscreen">Fullscreen</button><button id="previewRatio">Fit / Fill</button><button id="previewClose">Mbyll</button></div></dialog>
+</div><script>
+// One session-scoped import key. Never commit or persist credentials.
+function lmImportKey(field){return (field&&field.value.trim()) || (document.getElementById("importApiKey")?.value.trim()||"");}
+// Explicit DOM references: never rely on browser window-named properties (notably window.status).
+const servers=document.getElementById("servers");
+const serverBtns=document.getElementById("serverBtns");
+const viewer=document.getElementById("viewer");
+const serverTitle=document.getElementById("serverTitle");
+const category=document.getElementById("category");
+const search=document.getElementById("search");
+const list=document.getElementById("list");
+const stalker=document.getElementById("stalker");
+const sPortal=document.getElementById("sPortal");
+const sMac=document.getElementById("sMac");
+const sConnect=document.getElementById("sConnect");
+const sStatus=document.getElementById("sStatus");
+const sPanel=document.getElementById("sPanel");
+const sCountry=document.getElementById("sCountry");
+const sCategory=document.getElementById("sCategory");
+const sSearch=document.getElementById("sSearch");
+const sList=document.getElementById("sList");
+const sTransfer=document.getElementById("sTransfer");
+const sDest=document.getElementById("sDest");
+const sKey=document.getElementById("sKey");
+const sTest=document.getElementById("sTest");
+const sSend=document.getElementById("sSend");
+const sProgress=document.getElementById("sProgress");
+const xtream=document.getElementById("xtream");
+const xHost=document.getElementById("xHost");
+const xUser=document.getElementById("xUser");
+const xPass=document.getElementById("xPass");
+const xConnect=document.getElementById("xConnect");
+const xStatus=document.getElementById("xStatus");
+const xPanel=document.getElementById("xPanel");
+const xClear=document.getElementById("xClear");
+const xCategory=document.getElementById("xCategory");
+const xSearch=document.getElementById("xSearch");
+const xCount=document.getElementById("xCount");
+const xTest=document.getElementById("xTest");
+const xExport=document.getElementById("xExport");
+const xExportMode=document.getElementById("xExportMode");
+const xTestStatus=document.getElementById("xTestStatus");
+const xDest=document.getElementById("xDest");
+const xPrepareServer=document.getElementById("xPrepareServer");
+const xServerStatus=document.getElementById("xServerStatus");
+const lmUploadPanel=document.getElementById("lmUploadPanel");
+const lmUploadKey=document.getElementById("lmUploadKey");
+const lmUploadStart=document.getElementById("lmUploadStart");
+const lmUploadStop=document.getElementById("lmUploadStop");
+const lmUploadStatus=document.getElementById("lmUploadStatus");
+const xList=document.getElementById("xList");
+const m3u=document.getElementById("m3u");
+const m3uUrl=document.getElementById("m3uUrl");
+const m3uLoadUrl=document.getElementById("m3uLoadUrl");
+const m3uFile=document.getElementById("m3uFile");
+const m3uText=document.getElementById("m3uText");
+const m3uParse=document.getElementById("m3uParse");
+const m3uStatus=document.getElementById("m3uStatus");
+const m3uPanel=document.getElementById("m3uPanel");
+const m3uCountry=document.getElementById("m3uCountry");
+const m3uCategory=document.getElementById("m3uCategory");
+const m3uSearch=document.getElementById("m3uSearch");
+const m3uTestTools=document.getElementById("m3uTestTools");
+const m3uTestAll=document.getElementById("m3uTestAll");
+const m3uStop=document.getElementById("m3uStop");
+const m3uWorking=document.getElementById("m3uWorking");
+const m3uTestProgress=document.getElementById("m3uTestProgress");
+const m3uList=document.getElementById("m3uList");
+const m3uTransfer=document.getElementById("m3uTransfer");
+const mDest=document.getElementById("mDest");
+const mKey=document.getElementById("mKey");
+const mSend=document.getElementById("mSend");
+const mStopUpload=document.getElementById("mStopUpload");
+const mUploadStatus=document.getElementById("mUploadStatus");
+const register=document.getElementById("register");
+const regServer=document.getElementById("regServer");
+const deviceId=document.getElementById("deviceId");
+const deviceKey=document.getElementById("deviceKey");
+const regEndpoint=document.getElementById("regEndpoint");
+const regButton=document.getElementById("regButton");
+const regStatus=document.getElementById("regStatus");
+const API="https://script.google.com/macros/s/AKfycbzkIAcq1rqGz3miDPsVS728dESNpBoNjXui_bUOofJMvDed2d73CdE5mHgkECPvuN7wWQ/exec";
+const IMPORT_API=API;let server="SERVER_01",type="LIVE",rows=[],token=0;
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const val=(x,k)=>String((x&&((x[k]??x[k.toLowerCase()])))??"").trim();
+function init(){let h="";for(let i=1;i<=20;i++){const id="SERVER_"+String(i).padStart(2,"0");h+='<button class="srv '+(i===1?'active':'')+'" data-server="'+id+'">'+id+'</button>'}serverBtns.innerHTML=h;regServer.innerHTML=h.match(/data-server="([^"]+)"/g).map((_,i)=>'<option>SERVER_'+String(i+1).padStart(2,"0")+'</option>').join("");document.querySelectorAll(".srv").forEach(b=>b.onclick=()=>{document.querySelectorAll(".srv").forEach(x=>x.classList.remove("active"));b.classList.add("active");server=b.dataset.server;serverTitle.textContent=server;load()});load()}
+function jsonp(offset,limit,t){return new Promise((res,rej)=>{const cb="lm_"+Date.now()+"_"+Math.random().toString(36).slice(2),s=document.createElement("script");let done=false;const clean=()=>{try{delete window[cb]}catch(e){}s.remove()};const tm=setTimeout(()=>{if(!done){done=true;clean();rej(new Error("API timeout"))}},20000);window[cb]=d=>{if(done)return;done=true;clearTimeout(tm);clean();if(t!==token)return res({ok:true,items:[],total:0,cancelled:true});res(d)};s.onerror=()=>{if(!done){done=true;clearTimeout(tm);clean();rej(new Error("API nuk u lidh"))}};s.src=API+"?action=listJsonp&serverId="+encodeURIComponent(server)+"&type="+encodeURIComponent(type)+"&offset="+offset+"&limit="+limit+"&callback="+cb+"&_="+Date.now();document.head.appendChild(s)})}
+async function load(){const t=++token;status.className="m";status.textContent="Po lexohet "+server+" • "+type+"...";list.innerHTML="";try{let all=[],off=0,total=1,g=0;while(off<total&&g++<100){const j=await jsonp(off,500,t);if(t!==token||j.cancelled)return;if(!j||j.ok!==true||!Array.isArray(j.items))throw new Error((j&&j.error)||"API e pavlefshme");total=Number(j.total??j.items.length);all.push(...j.items);if(!j.items.length)break;off+=j.items.length}rows=all.filter(x=>val(x,"NAME").toUpperCase()!=="NAME");filters();render();status.className="m ok"}catch(e){rows=[];status.className="m err";status.textContent="Gabim: "+e.message;list.innerHTML='<div class="err">Nuk u lexuan të dhënat.</div>'}}
+function filters(){const cs=[...new Set(rows.map(x=>val(x,"COUNTRY")||"Other"))].sort();country.innerHTML='<option value="">🌍 Të gjitha shtetet</option>'+cs.map(x=>'<option>'+esc(x)+'</option>').join("");cats()}
+function cats(){const c=country.value,ks=[...new Set(rows.filter(x=>!c||(val(x,"COUNTRY")||"Other")===c).map(x=>val(x,"CATEGORY")||"General"))].sort();category.innerHTML='<option value="">📂 Të gjitha kategoritë</option>'+ks.map(x=>'<option>'+esc(x)+'</option>').join("")}
+function render(){const c=country.value,k=category.value,q=search.value.toLowerCase();const a=rows.filter(x=>(!c||(val(x,"COUNTRY")||"Other")===c)&&(!k||(val(x,"CATEGORY")||"General")===k)&&(!q||val(x,"NAME").toLowerCase().includes(q)));status.textContent=server+" • "+type+" • "+a.length+"/"+rows.length;list.innerHTML=a.length?a.map(x=>'<div class="item"><b>'+esc(val(x,"NAME")||"(pa emër)")+'</b><div class="m">🌍 '+esc(val(x,"COUNTRY")||"Other")+' • 📂 '+esc(val(x,"CATEGORY")||"General")+' • '+type+'</div><button type="button" onclick="lmPreviewServer('+rows.indexOf(x)+')">▶ PREVIEW</button></div>').join(""):"Nuk ka të dhëna në "+type}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));document.getElementById(b.dataset.page).classList.remove("hidden")});
+document.querySelectorAll("[data-type]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-type]").forEach(x=>x.classList.remove("on"));b.classList.add("on");type=b.dataset.type;load()});country.onchange=()=>{cats();render()};category.onchange=render;search.oninput=render;
+function openLazyAdmin(){const endpoint=document.getElementById("regEndpoint").value.trim();if(!/^https:\/\//.test(endpoint)){regStatus.textContent="Backend HTTPS mungon";return}const u=endpoint+(endpoint.includes("?")?"&":"?")+"admin=1";window.open(u,"_blank")|| (window.location.href=u)}
+async function registerInfo(){
+ const endpoint=document.getElementById("regEndpoint").value.trim(),device=document.getElementById("deviceId").value.trim(),key=document.getElementById("deviceKey").value.trim(),srv=regServer.value,btn=document.getElementById("regButton");
+ regStatus.className="m";regStatus.textContent="";
+ if(!/^https:\/\//i.test(endpoint)){regStatus.textContent="Vendos URL-në HTTPS të backend-it LazyTV Pro /exec.";return}
+ if(!device||!key){regStatus.textContent="Shkruaj Device ID dhe KEY për testim.";return}
+ btn.disabled=true;regStatus.textContent="Po testohet lidhja dhe statusi i pajisjes...";
+ try{
+  const reply=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"login",device_id:device,device_key:key,server_id:srv,device_name:"LazyMapper Pro"})});if(!reply.ok)throw Error("HTTP "+reply.status);const response=await reply.text();
+  let result;try{result=JSON.parse(response)}catch(e){throw Error("Backend nuk ktheu JSON të vlefshëm")}
+  const status=String(result.activation_status||result.status||"UNKNOWN").toUpperCase();
+  if(result.ok===false)throw Error(String(result.error||result.message||"Regjistrimi u refuzua"));
+  regStatus.className="m";
+  regStatus.textContent=status==="ACTIVE"?"✅ Pajisja është ACTIVE sipas backend-it. Serveri i zgjedhur: "+srv+". Verifiko veçmas që serveri është caktuar.":"Përgjigjja e backend-it: "+status+". Pajisja nuk është aktivizuar nga ky test. Serveri i zgjedhur: "+srv;
+ }catch(e){regStatus.className="m err";regStatus.textContent="TEST FAILED: "+e.message}
+ finally{btn.disabled=false}
+}
+let xType="LIVE",xRows=[],mRows=[];
+const xAction={LIVE:["get_live_categories","get_live_streams"],VOD:["get_vod_categories","get_vod_streams"],SERIES:["get_series_categories","get_series"]};
+function xBase(){return xHost.value.trim().replace(/\/$/,"")}
+const lmRequests=new Map();
+window.LazyMapperNativeReply=function(id,result){const p=lmRequests.get(id);if(!p)return;lmRequests.delete(id);clearTimeout(p.timer);result&&result.ok?p.resolve(result.text):p.reject(new Error(result&&result.error||"HTTP error"))};
+function lmHttpText(url){
+ if(window.LazyMapperNative&&typeof window.LazyMapperNative.getM3u==="function"){
+  return new Promise((resolve,reject)=>{const id="lm"+Date.now()+Math.random().toString(36).slice(2);
+   const timer=setTimeout(()=>{lmRequests.delete(id);reject(new Error("Timeout 70s"))},70000);
+   lmRequests.set(id,{resolve,reject,timer});try{window.LazyMapperNative.getM3u(url,id)}catch(e){clearTimeout(timer);lmRequests.delete(id);reject(e)}
+  });
+ }
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+ return fetch(url,{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.text()}).finally(()=>clearTimeout(timer));
+}
+async function xFetch(action){const u=xBase()+"/player_api.php?username="+encodeURIComponent(xUser.value.trim())+"&password="+encodeURIComponent(xPass.value)+"&action="+encodeURIComponent(action);const txt=await lmHttpText(u);try{return JSON.parse(txt)}catch(e){throw new Error("Xtream ktheu përgjigje jo-JSON")}}
+async function loadXtream(){try{const u=new URL(xBase());if(!['http:','https:'].includes(u.protocol)||u.username||u.password||u.search||u.hash||!xUser.value.trim()||!xPass.value)throw Error();}catch(e){xStatus.textContent='Plotëso URL HTTP/HTTPS, përdoruesin dhe fjalëkalimin e autorizuar.';return;}xStatus.className="m";xStatus.textContent="Po lidhet...";try{const info=await xFetch("");if(!info||!info.user_info||Number(info.user_info.auth)!==1||String(info.user_info.status||"Active").toLowerCase()!=="active")throw new Error("Xtream login i pavlefshëm");localStorage.setItem("LM_X_HOST",xBase());localStorage.setItem("LM_X_USER",xUser.value.trim());xPanel.classList.remove("hidden");xList.classList.remove("hidden");xStatus.className="m ok";xStatus.textContent="Lidhja Xtream u krye.";await xLoadType()}catch(e){xStatus.className="m err";xStatus.textContent="Gabim: "+e.message}}
+let xLoadVersion=0;
+async function xLoadType(){const version=++xLoadVersion;xCount.textContent="Po lexohet "+xType+"...";try{const [cats,items]=await Promise.all(xAction[xType].map(xFetch));if(version!==xLoadVersion)return;const cm={};(Array.isArray(cats)?cats:[]).forEach(x=>cm[String(x.category_id)]=x.category_name||"General");xRows=(Array.isArray(items)?items:[]).map(x=>({...x,_cat:cm[String(x.category_id)]||"General",_name:x.name||x.title||"(pa emër)"}));const ks=[...new Set(xRows.map(x=>x._cat))].sort();xCategory.innerHTML='<option value="">📂 Të gjitha kategoritë</option>'+ks.map(x=>'<option>'+esc(x)+'</option>').join("");xRender()}catch(e){xCount.className="m err";xCount.textContent="Gabim: "+e.message}}
+function xRender(){const k=xCategory.value,q=xSearch.value.toLowerCase();const a=xRows.filter(x=>(!k||x._cat===k)&&(!q||x._name.toLowerCase().includes(q)));xCount.className="m";xCount.textContent=xType+" • "+a.length+"/"+xRows.length;xList.innerHTML=a.slice(0,1000).map(x=>{const st=x._test||"UNTESTED",cl=st==="WORKING"?"test-working":st==="NOT WORKING"?"test-bad":st==="UNVERIFIED"?"test-unknown":"";return '<div class="item"><b>'+esc(x._name)+'</b><div class="m">📂 '+esc(x._cat)+' • '+xType+' • <span class="'+cl+'">'+esc(st)+'</span></div><button type="button" onclick="lmPreviewXtream('+xRows.indexOf(x)+')">▶ PREVIEW</button></div>'}).join("")+(a.length>1000?'<div class="m">Shfaqen 1000 të parat nga '+a.length+'.</div>':"")}
+
+function xFiltered(){const k=xCategory.value,q=xSearch.value.toLowerCase();return xRows.filter(x=>(!k||x._cat===k)&&(!q||x._name.toLowerCase().includes(q)))}
+function xStreamUrl(x){const base=xBase(),u=xUser.value.trim(),p=xPass.value;if(xType==="LIVE")return base+"/live/"+encodeURIComponent(u)+"/"+encodeURIComponent(p)+"/"+x.stream_id+".ts";if(xType==="VOD")return base+"/movie/"+encodeURIComponent(u)+"/"+encodeURIComponent(p)+"/"+x.stream_id+"."+(x.container_extension||"mp4");return ""}
+async function xCheck(x){const url=xStreamUrl(x);if(!url)return "UNVERIFIED";const r=await lmProbe(url);return r==="WORKING"?"WORKING":r==="UNAVAILABLE"?"NOT WORKING":r}
+let xTesting=false;
+async function xRunTests(){if(xTesting)return;const items=xFiltered();if(!items.length)return;xTesting=true;xTest.disabled=true;let pos=0,done=0,ok=0,bad=0,unknown=0;const total=items.length;async function worker(){while(pos<total&&xTesting){const x=items[pos++];x._test=await xCheck(x);if(["AUTH REQUIRED","RATE LIMITED"].includes(x._test))xTesting=false;done++;if(x._test==="WORKING")ok++;else if(x._test==="NOT WORKING")bad++;else unknown++;if(done%20===0||done===total){xTestStatus.className="m";xTestStatus.textContent="TEST "+done+"/"+total+" • WORKING "+ok+" • NOT WORKING "+bad+" • UNVERIFIED "+unknown;xRender();await new Promise(r=>setTimeout(r,0))}}}try{await Promise.all(Array.from({length:4},worker))}finally{xTesting=false;xTest.disabled=false;xRender()}}
+function xDownload(){const mode=xExportMode.value;const items=xFiltered().filter(x=>mode==="all"||x._test===(mode==="working"?"WORKING":"UNVERIFIED"));const lines=["#EXTM3U"];for(const x of items){const url=xStreamUrl(x);if(!url)continue;lines.push('#EXTINF:-1 group-title="'+String(x._cat).replace(/"/g,"")+'",'+x._name,url)}const blob=new Blob([lines.join("\n")+"\n"],{type:"audio/x-mpegurl"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="LazyMapper_"+xType+"_"+mode+".m3u";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+xTest.onclick=xRunTests;xExport.onclick=xDownload;
+function xInitDest(){let h="";for(let i=1;i<=20;i++){const id="SERVER_"+String(i).padStart(2,"0");h+='<option value="'+id+'">'+id+'</option>'}xDest.innerHTML=h}
+async function xPrepare(){
+ if(xTesting){xServerStatus.textContent="Prit përfundimin e testimit.";return}
+ const pending=xFiltered().filter(x=>!x._test);
+ if(pending.length){xServerStatus.className="m err";xServerStatus.textContent="Testo së pari: "+pending.length+" ende nuk janë testuar.";return}
+ const items=xFiltered().filter(x=>x._test==="WORKING");
+ if(!items.length){xServerStatus.className="m err";xServerStatus.textContent="Nuk ka kanale WORKING për bartje.";return}
+ const pack=items.map(x=>({SOURCE:"XTREAM",COUNTRY:"Other",CATEGORY:x._cat,NAME:x._name,STREAM_URL_CMD:xStreamUrl(x),STATUS:"WORKING",SERVER_ID:xDest.value,SOURCE_ID:String(x.stream_id||x.series_id||"")}));
+ sessionStorage.setItem("LM_PENDING_IMPORT",JSON.stringify({serverId:xDest.value,type:xType,items:pack}));
+ document.getElementById("lmUploadPanel").classList.remove("hidden");
+ document.getElementById("lmUploadStatus").textContent="Gati: "+pack.length+" kanale WORKING për "+xDest.value+". Shkruaj API key dhe shtyp FILLO BARTJEN.";
+ xServerStatus.className="m ok";xServerStatus.textContent="Testimi u konfirmua. Gati për importBatch: "+pack.length;
+ document.getElementById("lmUploadPanel").scrollIntoView({behavior:"smooth",block:"start"});
+}
+xPrepareServer.onclick=xPrepare;xInitDest();
+
+xConnect.onclick=loadXtream;document.querySelectorAll("[data-x-type]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-x-type]").forEach(z=>z.classList.remove("on"));b.classList.add("on");xType=b.dataset.xType;xLoadType()});xCategory.onchange=xRender;xSearch.oninput=xRender;xClear.onclick=()=>{xLoadVersion++;xPass.value="";xRows=[];xPanel.classList.add("hidden");xList.classList.add("hidden");xStatus.textContent="U pastrua sesioni Xtream."};
+function parseM3U(txt,sourceUrl=""){
+ if(/#EXT-X-(TARGETDURATION|STREAM-INF):/.test(String(txt))){
+  if(!/^https?:\/\//i.test(sourceUrl))throw Error("Manifest HLS: importoje përmes URL-së origjinale, që segmentet relative të zgjidhen saktë.");
+  return [{name:"HLS stream",group:"General",country:"Other",logo:"",tvgId:"",tvgName:"",url:sourceUrl,originalUrl:sourceUrl,directives:[]}];
+ }
+ const lines=String(txt).replace(/^\uFEFF/,"").replace(/\r/g,"").split("\n"),out=[];
+ let pending=null;const diagnostics=[];
+ function splitInfo(line){let quoted=false;for(let i=0;i<line.length;i++){if(line[i]==='"')quoted=!quoted;if(line[i]===','&&!quoted)return [line.slice(0,i),line.slice(i+1)];}return [line,""];}
+ for(const raw of lines){const line=raw.trim();if(!line)continue;
+  if(line.startsWith("#EXTINF:")){
+   if(pending)diagnostics.push("EXTINF pa URL përpara rreshtit "+(lines.indexOf(raw)+1));
+   const [head,name]=splitInfo(line),attrs={};for(const m of head.matchAll(/([\w-]+)="([^"]*)"/g))attrs[m[1].toLowerCase()]=m[2];
+   pending={name:name.trim()||attrs["tvg-name"]||"(pa emër)",group:attrs["group-title"]||"General",country:sCountryFromName((attrs["group-title"]||"")+" "+name,attrs["tvg-country"]),logo:attrs["tvg-logo"]||"",tvgId:attrs["tvg-id"]||"",tvgName:attrs["tvg-name"]||"",attributes:attrs,directives:[]};
+  }else if(line.startsWith("#")){if(pending)pending.directives.push(line);}
+  else if(pending){
+   let resolved=line;try{const u=new URL(line,sourceUrl||undefined);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)throw Error();resolved=/^https?:\/\//i.test(line)?line:u.href;}catch(e){diagnostics.push('URL e pavlefshme për '+pending.name);pending=null;continue;}
+   const type=/series|serial/i.test(pending.group)?'SERIES':/vod|movie|film/i.test(pending.group)?'VOD':'LIVE';
+   out.push({...pending,url:resolved,originalUrl:resolved,type});pending=null;
+  }
+ }
+ if(pending)diagnostics.push("EXTINF i fundit pa URL");
+ out.diagnostics=diagnostics;return out;
+}
+function exportM3U(items){
+ const attr=x=>String(x||"").replace(/["\r\n]/g,"");
+ const lines=["#EXTM3U"];
+ for(const x of items){if(!/^https?:\/\//i.test(x.url))continue;
+ lines.push('#EXTINF:-1 tvg-id="'+attr(x.tvgId)+'" tvg-name="'+attr(x.tvgName)+'" tvg-logo="'+attr(x.logo)+'" tvg-country="'+attr(x.attributes?.['tvg-country']||x.country)+'" group-title="'+attr(x.group)+'",'+String(x.name).replace(/[\r\n]/g," "));
+ // Export original URLs and metadata; never substitute a discovered signed redirect URL.
+ lines.push(...(x.directives||[]).filter(d=>/^#EXT(VLCOPT|GRP|HTTP):/.test(d)),x.originalUrl||x.url);
+ }return lines.join("\n")+"\n";
+}
+let mTesting=false,mTestIndex=0,mOnlyWorking=false;const mTestResults=new Map();
+function mRender(){const k=m3uCategory.value,c=m3uCountry.value,q=m3uSearch.value.toLowerCase(),a=mRows.filter(x=>(!k||x.group===k)&&(!c||x.country===c)&&(!q||x.name.toLowerCase().includes(q)));m3uStatus.textContent="M3U • "+a.length+"/"+mRows.length+(mRows.diagnostics?.length?" • Gabime: "+mRows.diagnostics.join("; "):"");m3uList.innerHTML=a.filter((x)=>!mOnlyWorking||mTestResults.get(x.url)==="WORKING").slice(0,1000).map(x=>'<div class="item"><b>'+esc(x.name)+'</b><div class="m">🌍 '+esc(x.country)+' • 📂 '+esc(x.group)+' • <span class="'+(mTestResults.get(x.url)==="WORKING"?"ok":mTestResults.get(x.url)==="UNAVAILABLE"?"err":"warn") +'">'+esc(mTestResults.get(x.url)||"NOT TESTED")+'</span></div><button type="button" onclick="lmPreviewM3u('+mRows.indexOf(x)+')">▶ PREVIEW</button></div>').join("")}
+function applyM3U(){mRows=parseM3U(m3uText.value,m3uUrl.value.trim());const ks=[...new Set(mRows.map(x=>x.group))].sort();const countries=[...new Set(mRows.map(x=>x.country))].sort();m3uCountry.innerHTML='<option value="">🌍 Të gjitha shtetet</option>'+countries.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("");m3uCategory.innerHTML='<option value="">📂 Të gjitha kategoritë</option>'+ks.map(x=>'<option>'+esc(x)+'</option>').join("");m3uPanel.classList.remove("hidden");m3uList.classList.remove("hidden");document.getElementById("m3uTestTools").classList.remove("hidden");document.getElementById("m3uTransfer").classList.remove("hidden");mTestResults.clear();mOnlyWorking=false;mRender()}
+document.getElementById("m3uFile").onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{m3uText.value=await f.text();m3uUrl.value="";applyM3U();m3uStatus.textContent="Skedari u lexua: "+f.name}catch(err){m3uStatus.textContent="Gabim gjatë leximit: "+err.message}};
+async function mCheckLink(u){return lmProbe(u)}
+document.getElementById("m3uStop").onclick=()=>{mTesting=false};document.getElementById("m3uWorking").onclick=()=>{mOnlyWorking=!mOnlyWorking;mRender()};document.getElementById("m3uTestAll").onclick=async()=>{if(mTesting)return;mTesting=true;mTestIndex=0;let working=0,dead=0,unknown=0;for(const x of mRows){if(!mTesting)break;const r=await mCheckLink(x.url);mTestResults.set(x.url,r);if(["AUTH REQUIRED","RATE LIMITED"].includes(r))mTesting=false;if(r==="WORKING")working++;else if(r==="UNAVAILABLE")dead++;else unknown++;mTestIndex++;document.getElementById("m3uTestProgress").textContent=`${mTestIndex}/${mRows.length} • WORKING ${working} • UNAVAILABLE ${dead} • UNKNOWN ${unknown}`;if(mTestIndex%10===0)mRender()}mTesting=false;mRender()};
+m3uParse.onclick=()=>{try{applyM3U()}catch(e){m3uStatus.textContent=e.message;}};m3uCountry.onchange=mRender;m3uCategory.onchange=mRender;m3uSearch.oninput=mRender;m3uLoadUrl.onclick=async()=>{m3uStatus.textContent="Po lexohet URL...";try{m3uText.value=await lmHttpText(m3uUrl.value.trim());applyM3U()}catch(e){m3uStatus.className="m err";m3uStatus.textContent="URL nuk u lexua: "+e.message+" (mund të jetë CORS)."}};
+xHost.value=localStorage.getItem("LM_X_HOST")||"";xUser.value=localStorage.getItem("LM_X_USER")||"";
+
+let lmStopUpload=false,lmUploading=false;
+const lmCheckpointKey="LM_IMPORT_CHECKPOINT_V2";
+async function lmUploadBatch(pack,apiKey){
+ const payload={action:"importBatch",apiKey,serverId:pack.serverId,source:"XTREAM",items:pack.items.map(x=>({
+ id:pack.type+"_"+x.SOURCE_ID,sourceId:x.SOURCE_ID,type:pack.type,country:x.COUNTRY,countryCode:"XX",category:x.CATEGORY,
+ groupTitle:x.CATEGORY,name:x.NAME,url:x.STREAM_URL_CMD,streamUrl:x.STREAM_URL_CMD,status:x.STATUS
+ }))};
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),60000);
+ try{const r=await fetch(IMPORT_API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload),signal:ctrl.signal});
+ if(!r.ok)throw Error("HTTP "+r.status);
+ const j=await r.json();if(j.ok!==true)throw Error(j.error||"importBatch nuk konfirmoi suksesin");
+ return j;
+ }finally{clearTimeout(timer)}
+}
+document.getElementById("lmUploadStop").onclick=()=>{lmStopUpload=true;lmUploadStatus.textContent+=" • Ndalimi u kërkua"};
+document.getElementById("lmUploadStart").onclick=async()=>{
+ if(lmUploading)return;
+ const key=lmImportKey(lmUploadKey);if(!key){alert("Konfiguro çelësin e importBatch te Settings ose në fushën e importit.");return}
+ const raw=sessionStorage.getItem("LM_PENDING_IMPORT");if(!raw){alert("Përgatit kanalet nga Xtream fillimisht.");return}
+ let job;try{job=JSON.parse(raw)}catch(e){alert("Paketa e pavlefshme");return}
+ const fingerprint=job.serverId+"|"+job.type+"|"+job.items.length+"|"+(job.items[0]?.SOURCE_ID||"")+"|"+(job.items[job.items.length-1]?.SOURCE_ID||"");
+ let checkpoint={fingerprint,next:0};try{const saved=JSON.parse(localStorage.getItem(lmCheckpointKey)||"null");if(saved?.fingerprint===fingerprint)checkpoint=saved}catch(e){}
+ lmUploading=true;lmStopUpload=false;lmUploadStart.disabled=true;
+ try{for(let pos=checkpoint.next;pos<job.items.length;pos+=40){
+ if(lmStopUpload)break;
+ const part={serverId:job.serverId,type:job.type,items:job.items.slice(pos,pos+40)};
+ lmUploadStatus.textContent="Duke bartur "+pos+"–"+Math.min(pos+40,job.items.length)+" / "+job.items.length+" në "+job.serverId;
+ let ok=false,error;
+ for(let attempt=1;attempt<=3;attempt++){try{await lmUploadBatch(part,key);ok=true;break}catch(e){error=e;lmUploadStatus.textContent="Përpjekja "+attempt+"/3 dështoi: "+e.message;if(attempt<3)await new Promise(r=>setTimeout(r,attempt*1500))}}
+ if(!ok)throw error;
+ checkpoint.next=pos+part.items.length;localStorage.setItem(lmCheckpointKey,JSON.stringify(checkpoint));
+ lmUploadStatus.textContent="Ruajtur: "+checkpoint.next+"/"+job.items.length+" • "+job.serverId;
+ }
+ if(checkpoint.next>=job.items.length){lmUploadStatus.textContent="✅ U konfirmuan "+checkpoint.next+" rreshta nga API. Kontrollo Sheet-in për dublime.";localStorage.removeItem(lmCheckpointKey)}
+ else lmUploadStatus.textContent="⏸ Ndalur në "+checkpoint.next+"/"+job.items.length+"; mund të vazhdosh.";
+ }catch(e){lmUploadStatus.textContent="⚠️ Bartja u ndërpre në "+checkpoint.next+"/"+job.items.length+": "+e.message+". Kontrollo Sheet-in para rifillimit për të shmangur dublimet."}
+ finally{lmUploading=false;lmUploadStart.disabled=false;lmUploadKey.value=""}
+};
+
+
+const lmProbePending=new Map();
+window.LazyMapperProbeReply=(id,result)=>{const p=lmProbePending.get(id);if(!p)return;lmProbePending.delete(id);clearTimeout(p.timer);p.resolve(result&&result.state||"UNKNOWN")};
+async function lmProbe(url){
+ if(!/^https?:\/\//i.test(url))return "UNKNOWN";
+ if(lmBackend&&lmAdminToken){
+  try{const submitted=await lmBackendCall("/api/jobs",{url,name:"Stream"});
+   for(let i=0;i<65;i++){await new Promise(r=>setTimeout(r,1000));const job=await lmBackendCall("/api/jobs/"+encodeURIComponent(submitted.id));
+    if(["DONE","AUTH_REQUIRED","RATE_LIMITED","CANCELLED"].includes(job.state)){lmShowHistory();return job.result?.status||job.state;}}
+   return "TIMEOUT";
+  }catch(e){return "UNKNOWN";}
+ }
+ if(window.LazyMapperNative&&typeof window.LazyMapperNative.probe==="function"){
+  return new Promise(resolve=>{const id="probe"+Date.now()+Math.random().toString(36).slice(2),timer=setTimeout(()=>{lmProbePending.delete(id);resolve("TIMEOUT")},18000);
+  lmProbePending.set(id,{resolve,timer});try{window.LazyMapperNative.probe(url,id)}catch(e){clearTimeout(timer);lmProbePending.delete(id);resolve("UNKNOWN")}});
+ }
+ const c=new AbortController(),timer=setTimeout(()=>c.abort(),10000);
+ try{const r=await fetch(url,{method:"GET",headers:{Range:"bytes=0-1023"},signal:c.signal});
+  if(r.body)await r.body.cancel();
+  if(r.status===401||r.status===403)return "AUTH REQUIRED";
+  if(r.status===429)return "RATE LIMITED";
+  if(r.status===451)return "UNKNOWN";
+  if(r.status===404||r.status===410)return "UNAVAILABLE";
+  return "UNKNOWN";
+ }catch(e){return e.name==="AbortError"?"TIMEOUT":"UNKNOWN";}finally{clearTimeout(timer);}
+}
+for(let i=1;i<=20;i++)mDest.add(new Option("SERVER_"+String(i).padStart(2,"0"),"SERVER_"+String(i).padStart(2,"0")));
+let mUploadStop=false,mUploadBusy=false;
+mStopUpload.onclick=()=>{mUploadStop=true;mUploadStatus.textContent+=" • STOP kërkuar"};
+async function lmImport(items,serverId,source,key,progress,shouldStop){
+ let saved=0;for(let i=0;i<items.length;i+=40){if(shouldStop())break;const part=items.slice(i,i+40);
+  const payload={action:"importBatch",apiKey:key,serverId,source,items:part};
+  let result,err;
+  for(let attempt=0;attempt<3;attempt++){try{const r=await fetch(IMPORT_API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});if(!r.ok)throw Error("HTTP "+r.status);
+    result=await r.json();if(result.ok!==true)throw Error(result.error||"API nuk konfirmoi importin");break;
+   }catch(e){err=e;if(attempt<2)await new Promise(res=>setTimeout(res,1500*(attempt+1)))}}
+  if(!result||result.ok!==true)throw Error("Grupi "+(i+1)+"–"+(i+part.length)+": "+(err?.message||"dështoi"));
+  saved+=part.length;progress(saved,items.length,result);
+ }return saved;
+}
+mSend.onclick=async()=>{
+ if(mUploadBusy)return;if(!mRows.length){mUploadStatus.textContent="Ngarko M3U së pari.";return}
+ const key=lmImportKey(mKey);if(!key){mUploadStatus.textContent="Konfiguro çelësin e importBatch te Settings ose në fushën e importit.";return}
+ mUploadBusy=true;mUploadStop=false;mSend.disabled=true;
+ try{
+  const candidates=mRows.filter(x=>(!m3uCategory.value||x.group===m3uCategory.value)&&(!m3uCountry.value||x.country===m3uCountry.value)&&(!m3uSearch.value||x.name.toLowerCase().includes(m3uSearch.value.toLowerCase())));
+  let i=0,ok=0,dead=0,unknown=0;
+  for(const x of candidates){if(mUploadStop)break;let r=mTestResults.get(x.url);if(!r){r=await lmProbe(x.url);mTestResults.set(x.url,r)}i++;if(r==="WORKING")ok++;else if(r==="UNAVAILABLE")dead++;else unknown++;
+   if(i%10===0||i===candidates.length)mUploadStatus.textContent="TEST "+i+"/"+candidates.length+" • WORKING "+ok+" • UNAVAILABLE "+dead+" • UNKNOWN "+unknown;
+  }
+  if(mUploadStop)return;
+  const working=candidates.filter(x=>mTestResults.get(x.url)==="WORKING");
+  if(!working.length)throw Error("Nuk ka WORKING të konfirmuara; UNKNOWN nuk barten.");
+  const items=working.map(x=>({id:"M3U_"+x.url,sourceId:x.url,type:/series|serial/i.test(x.group)?"SERIES":/vod|movie|film/i.test(x.group)?"VOD":"LIVE",country:x.country,countryCode:"XX",category:x.group,groupTitle:x.group,name:x.name,url:x.url,streamUrl:x.url,logo:x.logo,status:"WORKING"}));
+  await lmImport(items,mDest.value,"M3U",key,(n,total,j)=>{mUploadStatus.textContent="U konfirmuan "+n+"/"+total+" në "+mDest.value+" • added "+(j.added??"?")+" / updated "+(j.updated??"?")},()=>mUploadStop);
+  if(!mUploadStop)mUploadStatus.textContent="✅ Importi u konfirmua nga API: "+items.length+" kanale WORKING në "+mDest.value;
+ }catch(e){mUploadStatus.textContent="⚠️ "+e.message+" • Kontrollo Sheet-in përpara rifillimit."}
+ finally{mUploadBusy=false;mSend.disabled=false;mKey.value="";mRender()}
+};
+
+let sRows=[],sGenres=[],sBusy=false;
+const STALKER_API=API;
+let sMediaType="LIVE",sLoadVersion=0;
+async function lmScriptCall(action,data={}){
+ const key=lmImportKey(null)||sKey.value.trim();if(!key)throw Error('Vendos çelësin privat te Settings.');
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),60000);
+ try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...data,action,apiKey:key}),signal:ctrl.signal});
+ if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(!j||j.ok!==true)throw Error(j?.error||'API nuk konfirmoi rezultatin');return j;}finally{clearTimeout(timer);}
+}
+async function sGet(action,extra={}){
+ if(sMediaType!=='LIVE')action=({genres:sMediaType==='VOD'?'vod_genres':'series_genres',channels:sMediaType==='VOD'?'vod_items':'series_items',create_link:'media_create_link'})[action]||action;
+ const j=await lmScriptCall(action,{portal:sPortal.value.trim(),mac:sMac.value.trim(),mediaType:sMediaType.toLowerCase(),...extra});
+ if(Array.isArray(j.items))j.channels=j.items;return j;
+}
+// Region names from the runtime's ISO/CLDR data; ambiguous language groups are not countries.
+function lmCountryText(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();}
+let lmCountryNames;
+function lmCountryIndex(){
+ if(lmCountryNames)return lmCountryNames;
+ const names=new Map(),add=(alias,name)=>names.set(lmCountryText(alias),name);
+ for(let a=65;a<=90;a++)for(let b=65;b<=90;b++){
+  const code=String.fromCharCode(a,b);let label;
+  try{label=new Intl.DisplayNames(["en"],{type:"region"}).of(code);}catch(e){continue;}
+  if(!label||label===code)continue;
+  // Country codes are accepted only at a label boundary, not inside channel brands.
+  add(code,label);
+  for(const locale of ["en","sq","de","it","fr","tr","bs","mk","es","pt","ar"]){
+   try{add(new Intl.DisplayNames([locale],{type:"region"}).of(code),label);}catch(e){}
+  }
+ }
+ for(const [alias,label] of Object.entries({SHQIP:"Albania",SHQIPERI:"Albania",KOSOV:"Kosovo",XK:"Kosovo",UK:"United Kingdom",USA:"United States",DEUTSCH:"Germany",TURKIYE:"Türkiye",TURKEY:"Türkiye",MACEDONIA:"North Macedonia",BOSNIA:"Bosnia & Herzegovina",SWITZERLAND:"Switzerland",ITALIA:"Italy"}))add(alias,label);
+ return lmCountryNames=names;
+}
+function sCountryFromName(name,explicit=""){
+ const names=lmCountryIndex(),given=lmCountryText(explicit);
+ if(given&&names.has(given))return names.get(given);
+ const raw=String(name||""),text=lmCountryText(raw);
+ // AR/ARI in IPTV names denotes an Arabic language group, not Argentina.
+ const boundary=raw.match(/^\s*(?:[|\[({]*\s*)([a-z]{2})\s*(?:[|:\]\-})]|$)/i);
+ if(boundary&&!/^AR$/i.test(boundary[1])&&names.has(boundary[1].toUpperCase()))return names.get(boundary[1].toUpperCase());
+ const matches=[...names].filter(([alias])=>alias.length>3&&(" "+text+" ").includes(" "+alias+" ")).sort((a,b)=>b[0].length-a[0].length);
+ return matches.length?matches[0][1]:"Unidentified";
+}
+function lmIsGroupHeading(x){return !x.cmd&&!x.url&&!x.stream_url&&/^\s*[#*=~_-]{3,}.*[#*=~_-]{3,}\s*$/.test(String(x.name||x.title||""));}
+
+function sFilters(){const c=sCountry.value,k=sCategory.value,q=sSearch.value.toLowerCase();return sRows.filter(x=>(!c||x.country===c)&&(!k||x.category===k)&&(!q||x.name.toLowerCase().includes(q)))}
+function sRender(){const a=sFilters();sList.innerHTML=a.slice(0,600).map(x=>'<div class="item"><b>'+esc(x.name)+'</b><div class="m">'+esc(x.country)+" • "+esc(x.category)+" • "+esc(x.test||"NOT TESTED")+"</div><button type='button' onclick='lmPreviewStalker("+sRows.indexOf(x)+")'>▶ PREVIEW</button></div>").join("")+(a.length>600?'<div class="m">600/'+a.length+' të shfaqura</div>':"");}
+function sUpdateFilters(){const cs=[...new Set(sRows.map(x=>x.country))].sort();sCountry.innerHTML='<option value="">🌍 Të gjitha shtetet</option>'+cs.map(x=>'<option>'+esc(x)+'</option>').join("");sCats()}
+function sCats(){const cs=[...new Set(sRows.filter(x=>!sCountry.value||x.country===sCountry.value).map(x=>x.category))].sort();sCategory.innerHTML='<option value="">📂 Të gjitha kategoritë</option>'+cs.map(x=>'<option>'+esc(x)+'</option>').join("");sRender()}
+sCountry.onchange=sCats;sCategory.onchange=sRender;sSearch.oninput=sRender;
+for(let i=1;i<=20;i++)sDest.add(new Option("SERVER_"+String(i).padStart(2,"0"),"SERVER_"+String(i).padStart(2,"0")));
+sConnect.onclick=async()=>{
+ if(sBusy)return;if(!sPortal.value.trim()||!sMac.value.trim()){sStatus.textContent="Plotëso Portal dhe MAC.";return}
+ sBusy=true;sConnect.disabled=true;sStatus.textContent="Po lidhet dhe po lexon kategoritë...";
+ try{
+ const portal=new URL(sPortal.value.trim());if(!['http:','https:'].includes(portal.protocol)||portal.username||portal.password)throw Error('Portal URL e pavlefshme');
+ if(!/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(sMac.value.trim()))throw Error('MAC duhet në formatin AA:BB:CC:DD:EE:FF të pajisjes së autorizuar');
+ const g=await sGet("genres");sGenres=Array.isArray(g.genres)?g.genres:[];if(!sGenres.length)throw Error("Portali nuk ktheu kategori LIVE");
+ sRows=[];sPanel.classList.remove("hidden");sList.classList.remove("hidden");sTransfer.classList.remove("hidden");
+ let loaded=0;for(const genre of sGenres){for(let page=1;page<=150;page++){
+ const j=await sGet("channels",{genre:String(genre.id),page:String(page)});const items=Array.isArray(j.channels)?j.channels:[];
+ for(const x of items){if(lmIsGroupHeading(x))continue;const name=String(x.name||x.title||"Unknown"),cat=String(genre.title||genre.name||"General");sRows.push({id:String(x.id||x.ch_id||sRows.length),name,category:cat,country:sCountryFromName(cat+" "+name,x.country||x.country_code||""),cmd:String(x.cmd||""),url:String(x.url||x.stream_url||""),test:"NOT TESTED"});}
+ loaded+=items.length;sStatus.textContent=sMediaType+" • "+loaded+" kanale • "+String(genre.title||genre.name||"General"); if(page%5===0){sUpdateFilters();await new Promise(r=>setTimeout(r,0))}
+ const max=Number(j.max_page||0);if(!items.length||(max&&page>=max))break;
+ }}
+ sUpdateFilters();sStatus.textContent=sMediaType+" u lexua: "+sRows.length+" kanale. Zgjidh shtetin/kategorinë, testo dhe bart.";
+ }catch(e){sStatus.textContent="Gabim lidhjeje: "+e.message}
+ finally{sBusy=false;sConnect.disabled=false}
+};
+sTest.onclick=async()=>{if(sBusy)return;sBusy=true;sTest.disabled=true;try{let i=0,w=0;const a=sFilters();for(const x of a){try{if(!x.cmd&&!x.url){x.test="UNKNOWN";continue}if(!x.url){const j=await sGet("create_link",{cmd:x.cmd});x.url=j.stream||""}x.test=x.url?await lmProbe(x.url):"UNKNOWN"}catch(e){x.test="UNKNOWN";if(/401|403|429|AUTH/i.test(e.message))throw e;}if(["AUTH REQUIRED","RATE LIMITED"].includes(x.test)){sProgress.textContent="U ndal: "+x.test;sRender();return;}if(x.test==="WORKING")w++;i++;if(i%10===0||i===a.length){sProgress.textContent="TEST "+i+"/"+a.length+" • WORKING "+w;sRender()}}sProgress.textContent="Përfundoi • WORKING "+w+"/"+a.length}catch(e){sProgress.textContent="Gabim: "+e.message}finally{sBusy=false;sTest.disabled=false}};
+sSend.onclick=async()=>{if(sBusy)return;const key=lmImportKey(sKey);if(!key){sProgress.textContent="Konfiguro çelësin e importBatch te Settings ose në fushën e importit.";return}const a=sFilters();if(a.some(x=>x.test==="NOT TESTED")){sProgress.textContent="Shtyp TESTO KANALET përpara bartjes.";return}const working=a.filter(x=>x.test==="WORKING");if(!working.length){sProgress.textContent="Asnjë kanal WORKING për bartje.";return}sBusy=true;sSend.disabled=true;try{const items=working.map(x=>({id:"STALKER_"+sMediaType+"_"+x.id,sourceId:x.id,type:sMediaType,country:x.country,countryCode:"XX",category:x.category,groupTitle:x.category,name:x.name,url:x.url,streamUrl:x.url,status:"WORKING"}));const n=await lmImport(items,sDest.value,"STALKER",key,(n,total)=>{sProgress.textContent="U konfirmuan "+n+"/"+total+" • "+sDest.value},()=>false);sProgress.textContent="✅ API konfirmoi "+n+" kanale në "+sDest.value}catch(e){sProgress.textContent="Gabim bartjeje: "+e.message}finally{sBusy=false;sSend.disabled=false;sKey.value=""}};
+// Initialization follows backend settings setup.
+
+
+function lmOpenPreview(url,name){
+ if(!/^https?:\/\//i.test(String(url||""))){alert("Nuk ka URL HTTP/HTTPS të verifikuar për këtë hyrje. PREVIEW nuk mund të luajë vetëm emrin e kanalit. Verifiko lidhjen dhe përdor CREATE_LINK vetëm nëse API-ja e autorizuar e mbështet.");return;}
+ if(window.LazyMapperNative&&typeof window.LazyMapperNative.preview==="function"){
+   window.LazyMapperNative.preview(String(url),String(name||"Kanal"),"AUTO");
+ }else{
+   lmWebPreview(url,name);
+ }
+}
+function lmPreviewServer(i){const x=rows[i];if(!x)return;const url=["STREAM_URL_CMD","STREAM_URL","URL","LINK","CMD","PLAY_URL","stream_url_cmd","stream_url","url","cmd"].map(k=>val(x,k)).find(v=>/^https?:\/\//i.test(v));lmOpenPreview(url||"",val(x,"NAME"));}
+function lmPreviewXtream(i){const x=xRows[i];if(x)lmOpenPreview(xStreamUrl(x),x._name);}
+function lmPreviewM3u(i){const x=mRows[i];if(x)lmOpenPreview(x.url,x.name);}
+function lmPreviewStalker(i){const x=sRows[i];if(!x)return;const url=[x.url,x.stream_url,x.streamUrl,x.cmd,x.link].find(v=>/^https?:\/\//i.test(String(v||"").trim()));lmOpenPreview(url||"",x.name);}
+
+// Backend token remains in memory. Never store it in localStorage or exports.
+let lmBackend=localStorage.getItem("LM_BACKEND_URL")||"",lmAdminToken="";
+const lmEl=id=>document.getElementById(id);
+lmEl("backendUrl").value=lmBackend;
+async function lmBackendCall(path,body,raw=false){
+ if(!lmBackend||!lmAdminToken)throw Error("Konfiguro backend-in te Settings.");
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
+ try{const response=await fetch(lmBackend+path,{method:body?"POST":"GET",headers:{Authorization:"Bearer "+lmAdminToken,...(body?{"Content-Type":"application/json"}:{})},body:body?JSON.stringify(body):undefined,signal:ctrl.signal});
+ if([401,403,429].includes(response.status)){lmAdminToken="";throw Error("API HTTP "+response.status+" — procesi u ndal; verifiko autorizimin/kufizimin.");}if(!response.ok)throw Error("API HTTP "+response.status);return raw?response.text():response.json();}finally{clearTimeout(timer);}
+}
+lmEl("connectBackend").onclick=async()=>{try{
+ const u=new URL(lmEl("backendUrl").value.trim());if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash)throw Error("Kërkohet adresë HTTPS pa kredenciale ose parametra.");
+ lmBackend=u.href.replace(/\/$/,"");lmAdminToken=lmEl("backendToken").value;lmEl("backendToken").value="";
+ const health=await lmBackendCall("/api/health");if(health.ok!==true)throw Error("API-ja nuk konfirmoi gjendjen e worker-it.");
+ if(window.LazyMapperNative?.configureBackend){const reply=window.LazyMapperNative.configureBackend(lmBackend,lmAdminToken);if(reply!=="OK")throw Error(reply);}
+ localStorage.setItem("LM_BACKEND_URL",lmBackend);lmEl("backendStatus").textContent="API u lidh. Web: token-i skadon pas mbylljes; Android: sesion i enkriptuar për WorkManager.";
+ }catch(e){lmAdminToken="";lmEl("backendStatus").textContent=e.message;}};
+function lmRefreshNativeJobs(){
+ if(!window.LazyMapperNative?.backgroundState){lmEl("nativeJobsStatus").textContent="Web: kontrollo punët te Test History pas lidhjes me backend-in.";return;}
+ try{
+  const state=JSON.parse(window.LazyMapperNative.backgroundState());
+  lmEl("nativeJobsStatus").textContent=state.error||state.jobs.map(x=>x.state+" • "+(x.status||"NOT TESTED")+(x.error?" • "+x.error:"")).join("\n")||"Nuk ka punë Android.";
+  if(state.configured&&!lmAdminToken)lmEl("backendStatus").textContent="Konfigurimi Android është ruajtur i enkriptuar. Mund të nisësh analizën; për historikun web rilidhu me token-in.";
+ }catch(e){lmEl("nativeJobsStatus").textContent="Statusi Android nuk mund të lexohet.";}
+}
+lmEl("nativeJobsRefresh").onclick=lmRefreshNativeJobs;
+lmRefreshNativeJobs();
+lmEl("disconnectBackend").onclick=()=>{if(window.LazyMapperNative?.logoutBackend)window.LazyMapperNative.logoutBackend();lmAdminToken="";lmEl("backendToken").value="";lmEl("importApiKey").value="";lmEl("historyList").replaceChildren();lmEl("backendStatus").textContent="Sesioni u mbyll.";};
+function lmSave(text,name,type){const blob=new Blob([text],{type}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+async function lmJobLogs(id){try{const rows=await lmBackendCall('/api/jobs/'+encodeURIComponent(id)+'/logs');lmEl('analyzerStatus').textContent=rows.map(r=>new Date(r.at*1000).toLocaleString()+' • '+r.state).join(' | ')||'Nuk ka ngjarje.';}catch(e){lmEl('analyzerStatus').textContent=e.message;}}
+async function lmJobControl(id,action){try{await lmBackendCall('/api/jobs/'+encodeURIComponent(id)+'/'+action,{});await lmShowHistory();}catch(e){lmEl('analyzerStatus').textContent=e.message;}}
+function lmJobButtons(j){return '<button type="button" onclick="lmJobLogs(\''+esc(j.id)+'\')">Logs</button>'+(['QUEUED','RUNNING'].includes(j.state)?['pause','cancel']:j.state==='PAUSED'?['resume','cancel']:[]).map(action=>'<button type="button" onclick="lmJobControl(\''+esc(j.id)+'\',\''+action+'\')">'+({pause:'Pause',resume:'Resume',cancel:'Cancel'}[action])+'</button>').join('');}
+async function lmShowHistory(){try{const data=await lmBackendCall("/api/history");lmEl("historyList").innerHTML=data.map(j=>'<div class="item"><b>'+esc(j.name)+'</b><div class="m">'+esc(j.state)+' • '+esc(j.result?.status||"UNKNOWN")+' • '+esc(j.result?.playback||"NOT TESTED")+' • '+esc(j.result?.checked_at||"")+'</div><div class="m">'+esc(j.result?.error||"")+'</div><progress max="100" value="'+(j.progress||0)+'"></progress>'+lmJobButtons(j)+'</div>').join("");}catch(e){lmEl("analyzerStatus").textContent=e.message;}}
+lmEl("historyRefresh").onclick=lmShowHistory;
+lmEl("analyzeOne").onclick=async()=>{try{
+ if(window.LazyMapperNative?.enqueueAnalysis){const id=window.LazyMapperNative.enqueueAnalysis(lmEl("analyzerUrl").value.trim(),"Manual stream");if(id==="QUEUE ERROR"||id==="UNTRUSTED")throw Error(id);lmEl("analyzerStatus").textContent="Android WorkManager QUEUED • "+id;lmRefreshNativeJobs();return;}
+ const j=await lmBackendCall("/api/jobs",{url:lmEl("analyzerUrl").value.trim(),name:"Manual stream"});lmEl("analyzerStatus").textContent="QUEUED • "+j.id;await lmShowHistory();}catch(e){lmEl("analyzerStatus").textContent=e.message;}};
+for(const [id,path,name,type] of [["historyJson","/api/history","LazyMapper-history.json","application/json"],["historyCsv","/api/history.csv","LazyMapper-history.csv","text/csv"]])lmEl(id).onclick=async()=>{try{lmSave(await lmBackendCall(path,null,true),name,type);}catch(e){lmEl("analyzerStatus").textContent=e.message;}};
+lmEl("exportPlaylist").onclick=()=>{if(!mRows.length){lmEl("analyzerStatus").textContent="Importo një M3U së pari.";return;}lmSave(exportM3U(mRows),"LazyMapper.m3u","audio/x-mpegurl");};
+const lmVideo=lmEl("previewVideo"),lmDialog=lmEl("webPreview");
+let lmHls=null,lmPreviewUrl="",lmPreviewName="";
+function lmStopHls(){if(lmHls){lmHls.destroy();lmHls=null;}lmVideo.pause();lmVideo.removeAttribute("src");lmVideo.load();}
+function lmWebPreview(url,name){
+ if(!/^https?:\/\//i.test(String(url||""))){lmEl("previewStatus").textContent="URL e pavlefshme";return;}
+ lmPreviewUrl=url;lmPreviewName=name||"Preview";lmStopHls();lmEl("previewName").textContent=lmPreviewName;
+ lmEl("previewStatus").textContent="Duke hapur player-in…";lmDialog.showModal();
+ const hls=/\.m3u8(?:[?#]|$)/i.test(url);
+ if(hls&&window.Hls&&window.Hls.isSupported()){
+  lmHls=new window.Hls({enableWorker:true,lowLatencyMode:true,maxBufferLength:25});
+  lmHls.on(window.Hls.Events.ERROR,(_event,data)=>{lmEl("previewStatus").textContent="HLS: "+data.details+(data.fatal?" (gabim kritik)":"");if(data.fatal){if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR)lmHls.startLoad();else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR)lmHls.recoverMediaError();else lmStopHls();}});
+  lmHls.loadSource(url);lmHls.attachMedia(lmVideo);
+ }else{lmVideo.src=url;if(hls&&!lmVideo.canPlayType("application/vnd.apple.mpegurl"))lmEl("previewStatus").textContent="Ky shfletues nuk ka motor HLS të disponueshëm."}
+ lmVideo.play().catch(()=>{lmEl("previewStatus").textContent="Shtyp Play. Nëse nuk luan, kontrollo formatin, CORS ose autorizimin.";});
+}
+lmVideo.onplaying=()=>{lmEl("previewStatus").textContent="PLAYING • transmetim aktiv në player";};
+lmVideo.onwaiting=()=>{lmEl("previewStatus").textContent="BUFFERING";};
+lmVideo.onerror=()=>{lmEl("previewStatus").textContent="Gabim playback; nuk provon që burimi është DEAD.";};
+lmEl("previewRetry").onclick=()=>{if(lmPreviewUrl)lmWebPreview(lmPreviewUrl,lmPreviewName)};
+lmEl("previewFullscreen").onclick=()=>{if(lmVideo.requestFullscreen)lmVideo.requestFullscreen().catch(()=>{});else if(lmVideo.webkitEnterFullscreen)lmVideo.webkitEnterFullscreen();};
+lmEl("previewRatio").onclick=()=>{lmVideo.style.objectFit=lmVideo.style.objectFit==="cover"?"contain":"cover";};
+function lmClosePreview(){lmStopHls();}
+lmEl("previewClose").onclick=()=>lmDialog.close();lmDialog.addEventListener("close",lmClosePreview);
+lmDialog.addEventListener("cancel",lmClosePreview);
+const lmDrop=lmEl("m3uText");lmDrop.addEventListener("dragover",e=>e.preventDefault());lmDrop.addEventListener("drop",async e=>{e.preventDefault();const file=e.dataTransfer.files[0];if(!file)return;if(file.size>25*1024*1024){m3uStatus.textContent="Skedari mbi 25 MB";return;}try{lmDrop.value=await file.text();m3uUrl.value="";applyM3U();}catch(err){m3uStatus.textContent=err.message;}});
+init();
+
+// AppCreator24 / script controls. Existing visual identity is retained.
+document.querySelectorAll('[data-s-type]').forEach(b=>b.onclick=()=>{if(sBusy){sStatus.textContent='Prit përfundimin e leximit aktual.';return;}sMediaType=b.dataset.sType;sRows=[];sGenres=[];sRender();document.querySelectorAll('[data-s-type]').forEach(x=>x.classList.toggle('on',x===b));sStatus.textContent=sMediaType+' u zgjodh. Shtyp CONNECT për kategoritë.';});
+document.getElementById('stbProfile').onclick=async()=>{const out=document.getElementById('stbStatus');out.textContent='Po kontrollohet...';try{const j=await lmScriptCall('stbProfile',{portal:sPortal.value.trim(),mac:sMac.value.trim()});out.textContent='Lidhja: '+(j.connected?'OK':'UNKNOWN')+' • Model: '+(j.profile?.model||'Nuk u kthye')+' • Status: '+(j.profile?.status||'Nuk u kthye');}catch(e){out.textContent=e.message;}};
+document.getElementById('sExport').onclick=()=>{const items=sFilters().map(x=>({...x,group:x.category,url:x.url||String(x.cmd||'').replace(/^ffmpeg\s+/i,'')})).filter(x=>/^https?:\/\//i.test(x.url));if(!items.length){sStatus.textContent='Nuk ka URL të zgjidhura për eksport. Testo hyrjet e autorizuara fillimisht.';return;}lmSave(exportM3U(items),'LazyMapper-Stalker-'+sMediaType+'.m3u','audio/x-mpegurl');};
+async function lmScriptJobs(){try{const j=await lmScriptCall('jobs');document.getElementById('scriptJobs').innerHTML=j.jobs.map(x=>'<div class="item"><b>'+esc(x.mediaType||'LIVE')+' • '+esc(x.serverId)+'</b><div class="m">'+esc(x.state)+' • '+Number(x.found||0)+' hyrje • '+esc(x.message)+'</div><progress max="100" value="'+Number(x.progress||0)+'"></progress>'+(['QUEUED','RUNNING'].includes(x.state)?scriptJobButton(x.jobId,'pauseJob','Pause'):'')+(['PAUSED','ERROR'].includes(x.state)?scriptJobButton(x.jobId,'resumeJob','Resume'):'')+(['DONE','CANCELLED'].includes(x.state)?'':scriptJobButton(x.jobId,'cancelJob','Cancel'))+'</div>').join('')||'Nuk ka punë.';}catch(e){sProgress.textContent=e.message;}}
+function scriptJobButton(id,action,label){return '<button type="button" data-script-job="'+esc(id)+'" data-script-action="'+action+'">'+label+'</button>';}
+document.getElementById('scriptJobs').onclick=async e=>{const b=e.target.closest('[data-script-job]');if(!b)return;b.disabled=true;try{await lmScriptCall(b.dataset.scriptAction,{jobId:b.dataset.scriptJob});await lmScriptJobs();}catch(error){sProgress.textContent=error.message;}finally{b.disabled=false;}};
+document.getElementById('scriptJobsRefresh').onclick=lmScriptJobs;
+document.getElementById('sBackground').onclick=async()=>{try{if(!sGenres.length)throw Error('Lexo kategoritë me CONNECT fillimisht.');const j=await lmScriptCall('startJob',{source:'STALKER',serverId:sDest.value,portal:sPortal.value.trim(),mac:sMac.value.trim(),mediaType:sMediaType,genres:sGenres});sProgress.textContent='QUEUED • '+j.job.jobId+' • worker-i vazhdon në server; rifresko për progresin.';await lmScriptJobs();}catch(e){sProgress.textContent=e.message;}};
+const initialPage='stalker';if(['stalker','xtream','m3u','servers','register','diagnostics','settings'].includes(initialPage))document.querySelector('[data-page="'+initialPage+'"]').click();
+
+
+</script></body></html>

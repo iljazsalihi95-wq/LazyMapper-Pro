@@ -1,3 +1,5 @@
+Update 30 October 2026: see REPAIR_V4_2026-10-30.md at repository root for the live repair. The notes below describe the earlier checkpoint.
+
 # Existing Apps Script / AppCreator24 repair checkpoint
 
 19 October 2026. This is not a completed deployment.

@@ -18,7 +18,11 @@ class Queue:
         self.path, self.hosts = path, hosts
         with self.db() as db:
             db.execute('CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, url TEXT, name TEXT, state TEXT, attempts INTEGER DEFAULT 0, result TEXT, created REAL, updated REAL)')
-            db.execute("UPDATE jobs SET state='QUEUED' WHERE state='RUNNING'")
+            columns = {row[1] for row in db.execute('PRAGMA table_info(jobs)')}
+            if 'next_run' not in columns:
+                db.execute('ALTER TABLE jobs ADD COLUMN next_run REAL DEFAULT 0')
+            db.execute("CREATE TABLE IF NOT EXISTS events (job TEXT, state TEXT, at REAL)")
+            db.execute("UPDATE jobs SET state='QUEUED',next_run=0 WHERE state='RUNNING'")
 
     def db(self):
         db = sqlite3.connect(self.path, timeout=5)
@@ -29,32 +33,56 @@ class Queue:
         target(url, self.hosts)
         with self.db() as db:
             # Dedupe active jobs. Single API lock below serializes submissions.
-            prior = db.execute("SELECT id FROM jobs WHERE url=? AND state IN ('QUEUED','RUNNING')", (url,)).fetchone()
+            prior = db.execute("SELECT id FROM jobs WHERE url=? AND state IN ('QUEUED','RUNNING','PAUSED')", (url,)).fetchone()
             if prior:
                 return prior['id']
-            if db.execute("SELECT COUNT(*) FROM jobs WHERE state IN ('QUEUED','RUNNING')").fetchone()[0] >= 100:
+            if db.execute("SELECT COUNT(*) FROM jobs WHERE state IN ('QUEUED','RUNNING','PAUSED')").fetchone()[0] >= 100:
                 raise ValueError('Queue is full (100 jobs)')
             job = secrets.token_urlsafe(18)
-            db.execute('INSERT INTO jobs VALUES (?,?,?,?,?,?,?,?)',
+            db.execute('INSERT INTO jobs (id,url,name,state,attempts,result,created,updated) VALUES (?,?,?,?,?,?,?,?)',
                        (job, url, str(name)[:200], 'QUEUED', 0, None, time.time(), time.time()))
             return job
 
     def get(self, job=None):
         with self.db() as db:
-            rows = db.execute('SELECT id,name,state,attempts,result,created,updated FROM jobs WHERE id=?' if job else
-                              'SELECT id,name,state,attempts,result,created,updated FROM jobs ORDER BY created DESC LIMIT 500',
+            rows = db.execute('SELECT id,name,state,attempts,result,created,updated,next_run FROM jobs WHERE id=?' if job else
+                              'SELECT id,name,state,attempts,result,created,updated,next_run FROM jobs ORDER BY created DESC LIMIT 500',
                               (job,) if job else ()).fetchall()
         out = []
         for row in rows:
             item = dict(row)
             item['result'] = json.loads(item['result']) if item['result'] else None
+            item['progress'] = 100 if item['state'] in ('DONE', 'CANCELLED', 'AUTH_REQUIRED', 'RATE_LIMITED') else 0
             out.append(item)
         return out[0] if job and out else None if job else out
+
+    def control(self, job, action):
+        transitions = {'pause': ('PAUSED', ('QUEUED', 'RUNNING')),
+                       'resume': ('QUEUED', ('PAUSED',)),
+                       'cancel': ('CANCELLED', ('QUEUED', 'RUNNING', 'PAUSED'))}
+        if action not in transitions:
+            raise ValueError('Unknown action')
+        state, allowed = transitions[action]
+        with self.db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            row = db.execute('SELECT state FROM jobs WHERE id=?', (job,)).fetchone()
+            if not row:
+                return None
+            if row['state'] not in allowed:
+                raise ValueError('Invalid state transition')
+            db.execute("UPDATE jobs SET state=?,updated=?,next_run=0,url=CASE WHEN ?='CANCELLED' THEN '' ELSE url END WHERE id=?",
+                       (state, time.time(), state, job))
+            db.execute('INSERT INTO events VALUES (?,?,?)', (job, state, time.time()))
+        return self.get(job)
+
+    def events(self, job):
+        with self.db() as db:
+            return [dict(r) for r in db.execute('SELECT state,at FROM events WHERE job=? ORDER BY at DESC LIMIT 100', (job,))]
 
     def tick(self):
         with self.db() as db:
             db.execute('BEGIN IMMEDIATE')
-            row = db.execute("SELECT * FROM jobs WHERE state='QUEUED' ORDER BY created LIMIT 1").fetchone()
+            row = db.execute("SELECT * FROM jobs WHERE state='QUEUED' AND next_run<=? ORDER BY created LIMIT 1", (time.time(),)).fetchone()
             if not row:
                 return False
             db.execute("UPDATE jobs SET state='RUNNING', attempts=attempts+1,updated=? WHERE id=?", (time.time(), row['id']))
@@ -67,10 +95,17 @@ class Queue:
                       'error': 'Analyzer failed unexpectedly'}
         # Signed/query URLs remain only in the private job while pending. Do not persist them in history.
         result.pop('final_url', None)
-        retry = result['status'] == 'TIMEOUT' and row['attempts'] < 1
+        retry = result['status'] == 'TIMEOUT' and row['attempts'] < 3
+        state = ('AUTH_REQUIRED' if result['status'] == 'AUTH REQUIRED' else
+                 'RATE_LIMITED' if result.get('http_status') == 429 else
+                 'QUEUED' if retry else 'DONE')
+        next_run = time.time() + min(300, 30 * 2 ** row['attempts']) if retry else 0
         with self.db() as db:
-            db.execute('UPDATE jobs SET state=?,result=?,url=?,updated=? WHERE id=?',
-                       ('QUEUED' if retry else 'DONE', json.dumps(result), row['url'] if retry else '', time.time(), row['id']))
+            # A control request during I/O wins over late completion.
+            changed = db.execute("UPDATE jobs SET state=?,result=?,url=?,updated=?,next_run=? WHERE id=? AND state='RUNNING' AND attempts=?",
+                       (state, json.dumps(result), row['url'] if retry else '', time.time(), next_run, row['id'], row['attempts'] + 1)).rowcount
+            if changed:
+                db.execute('INSERT INTO events VALUES (?,?,?)', (row['id'], state, time.time()))
             db.execute("DELETE FROM jobs WHERE state='DONE' AND updated<?", (time.time()-30*86400,))
         return True
 
@@ -141,6 +176,8 @@ def handler(queue, token, origins):
                                      ('status', 'checked_at', 'response_ms', 'playback', 'error')])
                 self.send_api_headers(200, 'text/csv; charset=utf-8')
                 return self.wfile.write(out.getvalue().encode())
+            if path.startswith('/api/jobs/') and path.endswith('/logs'):
+                return self.reply(200, queue.events(path.split('/')[-2]))
             if path.startswith('/api/jobs/'):
                 item = queue.get(path.rsplit('/', 1)[1])
                 return self.reply(200 if item else 404, item or {'error': 'Not found'})
@@ -149,6 +186,13 @@ def handler(queue, token, origins):
         def do_POST(self):
             if not self.authorized():
                 return self.reply(401, {'error': 'AUTH REQUIRED'})
+            parts = urlsplit(self.path).path.strip('/').split('/')
+            if len(parts) == 4 and parts[:2] == ['api', 'jobs']:
+                try:
+                    item = queue.control(parts[2], parts[3])
+                    return self.reply(200 if item else 404, item or {'error': 'Not found'})
+                except ValueError:
+                    return self.reply(409, {'error': 'Invalid job action or state'})
             if self.path != '/api/jobs':
                 return self.reply(404, {'error': 'Not found'})
             try:

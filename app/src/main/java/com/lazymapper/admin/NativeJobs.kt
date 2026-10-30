@@ -147,6 +147,11 @@ class MapperWorker(context: Context, parameters: WorkerParameters) : Worker(cont
             repeat(30) {
                 if (isStopped) return Result.retry()
                 val result = api("/api/jobs/$remote")
+                if (result.optString("state") in listOf("AUTH_REQUIRED", "RATE_LIMITED", "CANCELLED")) {
+                    vault.remove(id)
+                    return Result.failure(Data.Builder().putString("remoteId", remote)
+                        .putString("error", result.optString("state")).build())
+                }
                 if (result.optString("state") == "DONE") {
                     vault.remove(id)
                     return Result.success(Data.Builder()

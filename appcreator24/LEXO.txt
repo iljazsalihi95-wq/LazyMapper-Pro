@@ -1,0 +1,11 @@
+LazyMapper Pro — AppCreator24 — 30.10.2026
+
+Kopjo të gjithë kodin e HTML-së së zgjedhur në rubrikën HTML të AppCreator24. Kryesor përmban të gjitha rubrikat. Skedarët e tjerë hapen direkt te rubrika përkatëse.
+
+Te Settings vendos çelësin ekzistues privat të skriptit. Çelësi nuk përfshihet në HTML. Për Stalker/STB përdor vetëm portalin dhe MAC-in e pajisjes ku ke autorizim.
+
+CONNECT lexon kategoritë dhe përmbajtjen. NIS BARTJEN NË SFOND krijon punën në Apps Script. RIFRESKO PUNËT E SKRIPTIT tregon gjendjen dhe Pause/Resume/Cancel. Worker-i i Apps Script vazhdon në server kur mbyllet aplikacioni; faqja vetë nuk vazhdon procesim lokal pas mbylljes.
+
+HTML-të lidhen me deployment-in ekzistues V3, versioni 14. Nuk është kryer test në APK AppCreator24 ose portal real. Xtream direkt mund të ketë kufizime CORS; nuk është shtuar proxy i hapur.
+
+Nuk ka APK në këtë paketë. Ndryshimet publikohen në repository-n ekzistues LazyMapper-Pro; kontrollo GitHub Actions për rezultatin e build-it.

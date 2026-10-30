@@ -68,6 +68,7 @@ public class MainActivity extends Activity {
           c.setRequestProperty("Range","bytes=0-1023");
           int status=c.getResponseCode();
           if(status==401||status==403)state="AUTH REQUIRED";
+          else if(status==429)state="RATE LIMITED";
           else if(status==451)state="UNKNOWN";
           else if(status==404||status==410)state="UNAVAILABLE";
           else if(status==200||status==206){

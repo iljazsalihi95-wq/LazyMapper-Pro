@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync(__dirname+'/../index.html','utf8');
 const script=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
 new vm.Script(script);
-const c=vm.createContext({Intl});
+const c=vm.createContext({Intl,URL});
 vm.runInContext(script.slice(script.indexOf('function lmCountryText'),script.indexOf('\nfunction sFilters')),c);
 for(const [input,expected] of [['AL | RTSH','Albania'],['DE: ZDF','Germany'],['Italy Sport','Italy'],['Kosovo Sport','Kosovo'],['MK | Kanal 5','North Macedonia'],['Austria ORF','Austria'],['ARI BEIN SPORT','Unidentified'],['###### ARABIC ######','Unidentified'],['UK: BBC','United Kingdom'],['Canada News','Canada'],['Japan NHK','Japan']])assert.equal(c.sCountryFromName(input),expected,input);
 assert.equal(c.sCountryFromName('BBC','GB'),'United Kingdom');
