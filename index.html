@@ -500,7 +500,7 @@ function lmStopHls(){if(lmHls){lmHls.destroy();lmHls=null;}lmVideo.pause();lmVid
 function lmWebPreview(url,name){
  const safe=lmSafeStreamUrl(url);
  if(!safe){lmEl("previewStatus").textContent="URL e pavlefshme ose mungon";return;}
- lmPreviewUrl=safe;lmPreviewName=name||"Preview";lmStopHls();
+ lmPreviewUrl=safe;lmPreviewName=name||"Preview";lmStopHls();lmPlaybackConfirmed=false;
  lmEl("previewName").textContent=lmPreviewName;
  lmEl("previewStatus").textContent="Po hapet transmetimi real…";
  if(!lmDialog.open)lmDialog.showModal();
@@ -532,8 +532,11 @@ function lmWebPreview(url,name){
  }
 }
 
-lmVideo.onplaying=()=>{lmEl("previewStatus").textContent="PLAYING • transmetim aktiv në player";};
-lmVideo.onwaiting=()=>{lmEl("previewStatus").textContent="BUFFERING";};
+let lmPlaybackConfirmed=false;
+lmVideo.onloadedmetadata=()=>{lmEl("previewStatus").textContent="Media u njoh; po priten frame reale…";};
+lmVideo.onplaying=()=>{lmEl("previewStatus").textContent="Player-i nisi; po verifikohet videoja…";};
+lmVideo.ontimeupdate=()=>{if(!lmPlaybackConfirmed&&lmVideo.currentTime>0&&lmVideo.readyState>=2){lmPlaybackConfirmed=true;lmEl("previewStatus").textContent="PLAYING • playback u konfirmua nga player-i";}};
+lmVideo.onwaiting=()=>{lmEl("previewStatus").textContent=lmPlaybackConfirmed?"BUFFERING • transmetimi u ndërpre përkohësisht":"BUFFERING • në pritje të videos";};
 lmVideo.onerror=()=>{const code=lmVideo.error?.code;const reasons={1:"Transmetimi u ndërpre",2:"Gabim rrjeti gjatë leximit",3:"Formati ose dekodimi nuk mbështetet",4:"Burimi ose formati nuk mbështetet"};lmEl("previewStatus").textContent=(reasons[code]||"Gabim playback")+" • nuk provon që burimi është DEAD.";};
 lmEl("previewRetry").onclick=()=>{if(lmPreviewUrl)lmWebPreview(lmPreviewUrl,lmPreviewName)};
 lmEl("previewFullscreen").onclick=()=>{if(lmVideo.requestFullscreen)lmVideo.requestFullscreen().catch(()=>{});else if(lmVideo.webkitEnterFullscreen)lmVideo.webkitEnterFullscreen();};
