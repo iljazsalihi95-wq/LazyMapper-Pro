@@ -415,7 +415,7 @@ function lmPreviewServer(i){const x=rows[i];if(!x)return;lmOpenPreview(lmRowStre
 function lmInspectServer(i){const x=rows[i];if(!x)return;const url=lmRowStream(x);if(!url){alert("Kjo hyrje ka vetëm emrin ose metadata; mungon URL-ja e stream-it.");return;}document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.page==="diagnostics"));document.querySelectorAll(".page").forEach(p=>p.classList.toggle("hidden",p.id!=="diagnostics"));document.getElementById("analyzerUrl").value=url;document.getElementById("analyzerStatus").textContent="URL e kanalit u vendos. Shtyp Testo stream-in për diagnostikim.";window.scrollTo(0,0);}
 function lmPreviewXtream(i){const x=xRows[i];if(x)lmOpenPreview(xStreamUrl(x),x._name);}
 function lmPreviewM3u(i){const x=mRows[i];if(x)lmOpenPreview(x.url,x.name);}
-function lmPreviewStalker(i){const x=sRows[i];if(!x)return;const url=[x.url,x.stream_url,x.streamUrl,x.cmd,x.link].find(v=>/^https?:\/\//i.test(String(v||"").trim()));lmOpenPreview(url||"",x.name);}
+function lmPreviewStalker(i){const x=sRows[i];if(!x)return;const url=[x.stream_url,x.streamUrl,x.url,x.link,x.cmd].map(lmSafeStreamUrl).find(Boolean);lmOpenPreview(url||"",x.name);}
 
 
 // Free local export uses existing authorized URLs; no import/admin token is required.
@@ -479,18 +479,40 @@ const lmVideo=lmEl("previewVideo"),lmDialog=lmEl("webPreview");
 let lmHls=null,lmPreviewUrl="",lmPreviewName="";
 function lmStopHls(){if(lmHls){lmHls.destroy();lmHls=null;}lmVideo.pause();lmVideo.removeAttribute("src");lmVideo.load();}
 function lmWebPreview(url,name){
- if(!/^https?:\/\//i.test(String(url||""))){lmEl("previewStatus").textContent="URL e pavlefshme";return;}
- lmPreviewUrl=url;lmPreviewName=name||"Preview";lmStopHls();lmEl("previewName").textContent=lmPreviewName;
- lmEl("previewStatus").textContent="Duke hapur player-in…";if(!lmDialog.open)lmDialog.showModal();
- const hls=/\.m3u8(?:[?#]|$)/i.test(url);
- if(hls&&window.Hls&&window.Hls.isSupported()){
-  lmHls=new window.Hls({enableWorker:true,lowLatencyMode:true,maxBufferLength:25});
-  lmHls.on(window.Hls.Events.ERROR,(_event,data)=>{lmEl("previewStatus").textContent="HLS: "+data.details+(data.fatal?" (gabim kritik)":"");if(data.fatal){if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR)lmHls.startLoad();else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR)lmHls.recoverMediaError();else lmStopHls();}});
-  lmHls.on(window.Hls.Events.MANIFEST_PARSED,()=>{lmVideo.play().catch(()=>{lmEl("previewStatus").textContent="Manifesti HLS u lexua. Shtyp Play për të nisur.";});});
-  lmHls.attachMedia(lmVideo);lmHls.loadSource(url);
- }else{lmVideo.src=url;if(hls&&!lmVideo.canPlayType("application/vnd.apple.mpegurl"))lmEl("previewStatus").textContent="Ky shfletues nuk ka motor HLS të disponueshëm."}
- if(!(hls&&window.Hls&&window.Hls.isSupported()))lmVideo.play().catch(()=>{lmEl("previewStatus").textContent="Shtyp Play. Nëse nuk luan, kontrollo formatin, CORS ose autorizimin.";});
+ const safe=lmSafeStreamUrl(url);
+ if(!safe){lmEl("previewStatus").textContent="URL e pavlefshme ose mungon";return;}
+ lmPreviewUrl=safe;lmPreviewName=name||"Preview";lmStopHls();
+ lmEl("previewName").textContent=lmPreviewName;
+ lmEl("previewStatus").textContent="Po hapet transmetimi real…";
+ if(!lmDialog.open)lmDialog.showModal();
+ const hls=/\.m3u8(?:[?#]|$)/i.test(safe);
+ const nativeHls=!!lmVideo.canPlayType("application/vnd.apple.mpegurl");
+ if(hls&&!nativeHls&&window.Hls?.isSupported()){
+  const instance=new window.Hls({enableWorker:true,lowLatencyMode:false,maxBufferLength:25});
+  lmHls=instance;
+  let retries=0;
+  instance.on(window.Hls.Events.ERROR,(_event,data)=>{
+   if(lmHls!==instance)return;
+   lmEl("previewStatus").textContent="HLS: "+String(data.details||"gabim")+(data.fatal?" • Playback nuk u konfirmua":"");
+   if(!data.fatal)return;
+   if(retries++>=2){lmEl("previewStatus").textContent="HLS nuk u luajt; provo Retry. Nuk do të thotë që kanali është DEAD.";return;}
+   if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR)instance.startLoad();
+   else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR)instance.recoverMediaError();
+  });
+  instance.on(window.Hls.Events.MANIFEST_PARSED,()=>{
+   if(lmHls!==instance)return;
+   lmEl("previewStatus").textContent="Manifesti HLS u lexua; po pritet video reale…";
+   lmVideo.play().catch(()=>{lmEl("previewStatus").textContent="Shtyp Play për të nisur videon.";});
+  });
+  instance.attachMedia(lmVideo);
+  instance.loadSource(safe);
+ }else{
+  lmVideo.src=safe;
+  if(hls&&!nativeHls)lmEl("previewStatus").textContent="Ky WebView nuk mbështet HLS. Duhet player nativ ose motor HLS.";
+  lmVideo.play().catch(()=>{lmEl("previewStatus").textContent="Shtyp Play; nëse nuk luan kontrollo formatin, CORS dhe autorizimin.";});
+ }
 }
+
 lmVideo.onplaying=()=>{lmEl("previewStatus").textContent="PLAYING • transmetim aktiv në player";};
 lmVideo.onwaiting=()=>{lmEl("previewStatus").textContent="BUFFERING";};
 lmVideo.onerror=()=>{lmEl("previewStatus").textContent="Gabim playback; nuk provon që burimi është DEAD.";};
