@@ -402,12 +402,13 @@ sSend.onclick=async()=>{if(sBusy)return;const key=lmImportKey(sKey);if(!key){sPr
 
 
 function lmOpenPreview(url,name){
- if(!/^https?:\/\//i.test(String(url||""))){alert("Nuk ka URL HTTP/HTTPS të verifikuar për këtë hyrje. PREVIEW nuk mund të luajë vetëm emrin e kanalit. Verifiko lidhjen dhe përdor CREATE_LINK vetëm nëse API-ja e autorizuar e mbështet.");return;}
+ const safe=lmSafeStreamUrl(url);
+ if(!safe){alert("Kjo hyrje nuk ka URL të gatshme për playback. Duhet URL reale nga burimi i autorizuar.");return;}
  if(window.LazyMapperNative&&typeof window.LazyMapperNative.preview==="function"){
-   window.LazyMapperNative.preview(String(url),String(name||"Kanal"),"AUTO");
- }else{
-   lmWebPreview(url,name);
+  try{window.LazyMapperNative.preview(safe,String(name||"Kanal"),"AUTO");return;}
+  catch(e){console.warn("Native preview unavailable; falling back to web player",e);}
  }
+ lmWebPreview(safe,name);
 }
 function lmSafeStreamUrl(value){const raw=String(value||"").trim().replace(/^ffmpeg\s+/i,"").replace(/^["']|["']$/g,"");if(!raw)return "";const m=raw.match(/https?:\/\/[^\s"'<>]+/i);if(!m)return "";try{const u=new URL(m[0]);return ["http:","https:"].includes(u.protocol)?u.href:"";}catch(e){return "";}}
 function lmRowStream(x){for(const k of ["STREAM_URL_CMD","STREAM_URL","URL","LINK","CMD","PLAY_URL","stream_url_cmd","stream_url","url","cmd","streamUrl","playUrl"]){const u=lmSafeStreamUrl(val(x,k));if(u)return u;}return "";}
@@ -515,7 +516,7 @@ function lmWebPreview(url,name){
 
 lmVideo.onplaying=()=>{lmEl("previewStatus").textContent="PLAYING • transmetim aktiv në player";};
 lmVideo.onwaiting=()=>{lmEl("previewStatus").textContent="BUFFERING";};
-lmVideo.onerror=()=>{lmEl("previewStatus").textContent="Gabim playback; nuk provon që burimi është DEAD.";};
+lmVideo.onerror=()=>{const code=lmVideo.error?.code;const reasons={1:"Transmetimi u ndërpre",2:"Gabim rrjeti gjatë leximit",3:"Formati ose dekodimi nuk mbështetet",4:"Burimi ose formati nuk mbështetet"};lmEl("previewStatus").textContent=(reasons[code]||"Gabim playback")+" • nuk provon që burimi është DEAD.";};
 lmEl("previewRetry").onclick=()=>{if(lmPreviewUrl)lmWebPreview(lmPreviewUrl,lmPreviewName)};
 lmEl("previewFullscreen").onclick=()=>{if(lmVideo.requestFullscreen)lmVideo.requestFullscreen().catch(()=>{});else if(lmVideo.webkitEnterFullscreen)lmVideo.webkitEnterFullscreen();};
 lmEl("previewRatio").onclick=()=>{lmVideo.style.objectFit=lmVideo.style.objectFit==="cover"?"contain":"cover";};
