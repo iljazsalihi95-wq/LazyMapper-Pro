@@ -329,7 +329,7 @@ let sMediaType="LIVE",sLoadVersion=0;
 async function lmDirectPortal(action,data){
  return new Promise((resolve,reject)=>{const id='portal'+Date.now()+Math.random().toString(36).slice(2);const timer=setTimeout(()=>{lmRequests.delete(id);reject(Error('Portal timeout'));},60000);lmRequests.set(id,{resolve:text=>{try{resolve(JSON.parse(text));}catch(e){reject(Error('Portal JSON invalid'));}},reject,timer});try{window.LazyMapperNative.inspectPortal(JSON.stringify({...data,action}),id);}catch(e){clearTimeout(timer);lmRequests.delete(id);reject(e);}});
 }
-async function lmScriptCall(action,data={}){
+async async function lmScriptCall(action,data={}){
  if(window.LazyMapperNative?.inspectPortal&&['genres','channels','create_link','vod_genres','vod_items','series_genres','series_items','media_create_link','stbProfile'].includes(action))return lmDirectPortal(action,data);
  const key=lmImportKey(null)||sKey.value.trim();if(!key)throw Error('Vendos çelësin privat te Settings.');
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),60000);
