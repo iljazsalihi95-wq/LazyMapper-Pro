@@ -391,7 +391,7 @@ function sCountryFromName(name,explicit=""){
 function lmIsGroupHeading(x){return !x.cmd&&!x.url&&!x.stream_url&&/^\s*[#*=~_-]{3,}.*[#*=~_-]{3,}\s*$/.test(String(x.name||x.title||""));}
 
 function sFilters(){const c=sCountry.value,k=sCategory.value,q=sSearch.value.toLowerCase();return sRows.filter(x=>(!c||x.country===c)&&(!k||x.category===k)&&(!q||x.name.toLowerCase().includes(q)))}
-function sRender(){const a=sFilters();sList.innerHTML=a.slice(0,600).map(x=>'<div class="item"><b>'+esc(x.name)+'</b><div class="m">'+esc(x.country)+" • "+esc(x.category)+" • "+esc(x.test||"NOT TESTED")+"</div><button type='button' onclick='lmPreviewStalker("+sRows.indexOf(x)+")'>▶ PREVIEW</button></div>").join("")+(a.length>600?'<div class="m">600/'+a.length+' të shfaqura</div>':"");}
+function sRender(){const a=sFilters();sList.innerHTML=a.slice(0,600).map(x=>'<div class="item"><b>'+esc(x.name)+'</b><div class="m">'+esc(x.country)+" • "+esc(x.category)+" • "+esc(x.test||"NOT TESTED")+"</div><button type='button' data-stalker-preview='"+sRows.indexOf(x)+"' onclick='lmPreviewStalker("+sRows.indexOf(x)+")'>▶ PREVIEW</button></div>").join("")+(a.length>600?'<div class="m">600/'+a.length+' të shfaqura</div>':"");}
 function sUpdateFilters(){const cs=[...new Set(sRows.map(x=>x.country))].sort();sCountry.innerHTML='<option value="">🌍 Të gjitha shtetet</option>'+cs.map(x=>'<option>'+esc(x)+'</option>').join("");sCats()}
 function sCats(){const cs=[...new Set(sRows.filter(x=>!sCountry.value||x.country===sCountry.value).map(x=>x.category))].sort();sCategory.innerHTML='<option value="">📂 Të gjitha kategoritë</option>'+cs.map(x=>'<option>'+esc(x)+'</option>').join("");sRender()}
 sCountry.onchange=sCats;sCategory.onchange=sRender;sSearch.oninput=sRender;
@@ -414,7 +414,7 @@ sConnect.onclick=async()=>{
  }catch(e){sStatus.textContent="Gabim lidhjeje: "+e.message}
  finally{sBusy=false;sConnect.disabled=false}
 };
-sTest.onclick=async()=>{if(sBusy)return;sBusy=true;sTest.disabled=true;try{let i=0,w=0;const a=sFilters();for(const x of a){try{if(!x.cmd&&!x.url){x.test="UNKNOWN";continue}if(!x.url){const j=await sGet("create_link",{cmd:x.cmd});x.url=j.stream||""}x.test=x.url?await lmProbe(x.url):"UNKNOWN"}catch(e){x.test="UNKNOWN";if(/401|403|429|AUTH/i.test(e.message))throw e;}if(["AUTH REQUIRED","RATE LIMITED"].includes(x.test)){sProgress.textContent="U ndal: "+x.test;sRender();return;}if(x.test==="WORKING")w++;i++;if(i%10===0||i===a.length){sProgress.textContent="TEST "+i+"/"+a.length+" • WORKING "+w;sRender()}}sProgress.textContent="Përfundoi • WORKING "+w+"/"+a.length}catch(e){sProgress.textContent="Gabim: "+e.message}finally{sBusy=false;sTest.disabled=false}};
+sTest.onclick=async()=>{if(sBusy)return;sBusy=true;sTest.disabled=true;try{let i=0,w=0;const a=sFilters();for(const x of a){try{if(!x.cmd&&!x.url){x.test="UNKNOWN";continue}if(!x.url){const j=await sGet("create_link",{cmd:x.cmd,id:x.id});x.url=lmStalkerResolvedUrl(j)}x.test=x.url?await lmProbe(x.url):"UNKNOWN"}catch(e){x.test="UNKNOWN";if(/401|403|429|AUTH/i.test(e.message))throw e;}if(["AUTH REQUIRED","RATE LIMITED"].includes(x.test)){sProgress.textContent="U ndal: "+x.test;sRender();return;}if(x.test==="WORKING")w++;i++;if(i%10===0||i===a.length){sProgress.textContent="TEST "+i+"/"+a.length+" • WORKING "+w;sRender()}}sProgress.textContent="Përfundoi • WORKING "+w+"/"+a.length}catch(e){sProgress.textContent="Gabim: "+e.message}finally{sBusy=false;sTest.disabled=false}};
 sSend.onclick=async()=>{if(sBusy)return;const key=lmImportKey(sKey);if(!key){sProgress.textContent="Konfiguro çelësin e importBatch te Settings ose në fushën e importit.";return}const a=sFilters();if(a.some(x=>x.test==="NOT TESTED")){sProgress.textContent="Shtyp TESTO KANALET përpara bartjes.";return}const working=a.filter(x=>x.test==="WORKING");if(!working.length){sProgress.textContent="Asnjë kanal WORKING për bartje.";return}sBusy=true;sSend.disabled=true;try{const items=working.map(x=>({id:"STALKER_"+sMediaType+"_"+x.id,sourceId:x.id,type:sMediaType,country:x.country,countryCode:"XX",category:x.category,groupTitle:x.category,name:x.name,url:x.url,streamUrl:x.url,status:"WORKING"}));const n=await lmImport(items,sDest.value,"STALKER",key,(n,total)=>{sProgress.textContent="U konfirmuan "+n+"/"+total+" • "+sDest.value},()=>false);sProgress.textContent="✅ API konfirmoi "+n+" kanale në "+sDest.value}catch(e){sProgress.textContent="Gabim bartjeje: "+e.message}finally{sBusy=false;sSend.disabled=false;sKey.value=""}};
 // Initialization follows backend settings setup.
 
@@ -434,7 +434,24 @@ function lmPreviewServer(i){const x=rows[i];if(!x)return;lmOpenPreview(lmRowStre
 function lmInspectServer(i){const x=rows[i];if(!x)return;const url=lmRowStream(x);if(!url){alert("Kjo hyrje ka vetëm emrin ose metadata; mungon URL-ja e stream-it.");return;}document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.page==="diagnostics"));document.querySelectorAll(".page").forEach(p=>p.classList.toggle("hidden",p.id!=="diagnostics"));document.getElementById("analyzerUrl").value=url;document.getElementById("analyzerStatus").textContent="URL e kanalit u vendos. Shtyp Testo stream-in për diagnostikim.";window.scrollTo(0,0);}
 function lmPreviewXtream(i){const x=xRows[i];if(x)lmOpenPreview(xStreamUrl(x),x._name);}
 function lmPreviewM3u(i){const x=mRows[i];if(x)lmOpenPreview(x.url,x.name);}
-function lmPreviewStalker(i){const x=sRows[i];if(!x)return;const url=[x.stream_url,x.streamUrl,x.url,x.link,x.cmd].map(lmSafeStreamUrl).find(Boolean);lmOpenPreview(url||"",x.name);}
+function lmStalkerResolvedUrl(j){for(const v of [j?.stream,j?.url,j?.link,j?.cmd,j?.stream_url,j?.data?.stream,j?.data?.url,j?.data?.cmd,j?.js?.cmd,j?.js?.url]){const u=lmSafeStreamUrl(v);if(u)return u;}return "";}
+async function lmPreviewStalker(i){
+ const x=sRows[i];if(!x)return;
+ let url=[x.stream_url,x.streamUrl,x.url,x.link].map(lmSafeStreamUrl).find(Boolean);
+ if(!url&&x.cmd){
+  const button=document.querySelector('[data-stalker-preview="'+i+'"]');
+  if(button)button.disabled=true;
+  try{
+   sStatus.textContent="Po kërkohet CREATE_LINK për "+x.name+"…";
+   const response=await sGet("create_link",{cmd:x.cmd,id:x.id});
+   url=lmStalkerResolvedUrl(response);
+   if(url){x.url=url;sStatus.textContent="CREATE_LINK u kthye; po provohet player-i…";}
+   else{sStatus.textContent="CREATE_LINK nuk ktheu URL të luajtshme.";}
+  }catch(e){sStatus.textContent="CREATE_LINK dështoi: "+e.message;}
+  finally{if(button)button.disabled=false;}
+ }
+ lmOpenPreview(url||"",x.name);
+}
 
 
 // Free local export uses existing authorized URLs; no import/admin token is required.
