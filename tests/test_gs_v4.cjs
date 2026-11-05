@@ -5,7 +5,7 @@ const c=vm.createContext({Date,JSON,Math,Number,String,Array,Object,Error,consol
  JOB_PREFIX:'LM_JOB_',WORKER_MAX_MS:10000,PAGES_PER_RUN:3,
  LockService:{getScriptLock:lock,getUserLock:lock},
  PropertiesService:{getScriptProperties:()=>({getProperty:k=>store[k],setProperty:(k,v)=>store[k]=v,getProperties:()=>({...store})})},
- doGet:e=>({base:true}),doPost:e=>({base:true}),
+ doGet:e=>({base:true}),doPost:e=>({base:true,body:JSON.parse(e.postData.contents)}),
  parseBody_:e=>JSON.parse(e.postData.contents),json_:x=>x,
  auth_:key=>{if(key!=='test-only')throw Error('Unauthorized')},
  createLazyMapperJob:d=>({mediaType:d.mediaType}),publicJob_:j=>({...j,portal:undefined,mac:undefined}),
@@ -33,3 +33,11 @@ seed();c.stalkerChannels_=()=>{throw Error('HTTP 429 secret-url')};c.lazyMapperB
 seed();c.stalkerChannels_=()=>{throw Error('network timeout')};c.lazyMapperBackgroundWorker();assert.equal(c.lmV4Read_('one').state,'QUEUED');assert(c.lmV4Read_('one').nextRunAt>Date.now());
 seed();post({action:'cancelJob',jobId:'one',apiKey:'test-only'});assert.equal(c.lmV4Read_('one').portal,'');assert.equal(c.lmV4Read_('one').state,'CANCELLED');
 console.log('Apps Script V4 authenticated actions, pause/resume/cancel, in-flight race, VOD dispatch, backoff and rate-limit stop: PASS');
+
+const batch={action:'importBatch',apiKey:'test-only',serverId:'SERVER_20',source:'M3U',items:[{id:'one',type:'LIVE'},{id:'one',type:'LIVE'}]};
+assert.equal(post({...batch,apiKey:'wrong'}).error,'AUTH REQUIRED');
+assert.match(post({...batch,serverId:'SERVER_21'}).error,/invalid/i);
+assert.equal(post(batch).body.items.length,1);
+assert.equal(post({...batch,items:[{id:'one',serverId:'SERVER_01'}]}).ok,false);
+assert.equal(post({action:'statusJob',jobId:'one',apiKey:'test-only'}).ok,true);
+console.log('Apps Script batch authorization, destination validation, duplicate input protection and statusJob alias: PASS');

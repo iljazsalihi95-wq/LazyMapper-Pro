@@ -5,12 +5,13 @@ import io
 import json
 import os
 import secrets
+import socket
 import sqlite3
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
-from analyzer import analyze, target
+from analyzer import analyze, target, Fetcher, PolicyError
 
 
 class Queue:
@@ -106,7 +107,9 @@ class Queue:
                        (state, json.dumps(result), row['url'] if retry else '', time.time(), next_run, row['id'], row['attempts'] + 1)).rowcount
             if changed:
                 db.execute('INSERT INTO events VALUES (?,?,?)', (row['id'], state, time.time()))
-            db.execute("DELETE FROM jobs WHERE state='DONE' AND updated<?", (time.time()-30*86400,))
+            cutoff = time.time()-30*86400
+            db.execute("DELETE FROM events WHERE job IN (SELECT id FROM jobs WHERE state IN ('DONE','CANCELLED','AUTH_REQUIRED','RATE_LIMITED') AND updated<?)", (cutoff,))
+            db.execute("DELETE FROM jobs WHERE state IN ('DONE','CANCELLED','AUTH_REQUIRED','RATE_LIMITED') AND updated<?", (cutoff,))
         return True
 
     def worker(self, stop):
@@ -186,6 +189,35 @@ def handler(queue, token, origins):
         def do_POST(self):
             if not self.authorized():
                 return self.reply(401, {'error': 'AUTH REQUIRED'})
+            # Authenticated metadata/playlist transport, using the same pinned DNS,
+            # redirect and exact-host policy as the analyzer. Never relay HTML,
+            # cookies, upstream headers or arbitrary methods to the caller.
+            if self.path == '/api/source':
+                try:
+                    size = int(self.headers.get('Content-Length', '0'))
+                    if not 0 < size <= 16384:
+                        return self.reply(400, {'error': 'Invalid request size'})
+                    body = json.loads(self.rfile.read(size))
+                    if not isinstance(body, dict) or not isinstance(body.get('url'), str) or len(body['url']) > 8192:
+                        return self.reply(400, {'error': 'Invalid source URL'})
+                    fetcher = Fetcher(queue.hosts, time.monotonic()+25, limit=25*1024*1024+1)
+                    code, ct, data, _ = fetcher.get(body['url'])
+                    if code not in (200, 206):
+                        return self.reply(code if code in (401,403,404,410,429) else 502,
+                                          {'error': 'Source HTTP '+str(code)})
+                    if len(data) > 25*1024*1024:
+                        return self.reply(413, {'error': 'Source exceeds 25 MB'})
+                    text = data.decode('utf-8-sig')
+                    if not text.lstrip().startswith(('{', '[', '#EXTM3U')):
+                        return self.reply(415, {'error': 'Expected JSON or M3U'})
+                    self.send_api_headers(200, 'text/plain; charset=utf-8')
+                    return self.wfile.write(text.encode())
+                except (TimeoutError, socket.timeout):
+                    return self.reply(504, {'error': 'TIMEOUT'})
+                except PolicyError:
+                    return self.reply(400, {'error': 'Source destination not authorized'})
+                except (ValueError, OSError, UnicodeError):
+                    return self.reply(502, {'error': 'Source response unavailable or invalid'})
             parts = urlsplit(self.path).path.strip('/').split('/')
             if len(parts) == 4 and parts[:2] == ['api', 'jobs']:
                 try:

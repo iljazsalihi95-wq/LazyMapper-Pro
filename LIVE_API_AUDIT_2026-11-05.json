@@ -1,0 +1,812 @@
+{
+  "checkedAt": "2026-11-05T20:10:09Z",
+  "checks": [
+    {
+      "serverId": "SERVER_01",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 4395,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11378,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_01",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 2,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11448,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_01",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 381,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11540,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_01",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 31,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9917,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_02",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 62572,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9897,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_02",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10114,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_02",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11675,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_02",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11633,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_03",
+      "type": "LIVE",
+      "state": "API_ERROR",
+      "total": 14665,
+      "sampleCount": 1,
+      "serverMatches": false,
+      "ms": 11321,
+      "apiResponseValid": true,
+      "dataWarning": "First sample is a repeated column-header row; omitted from UI"
+    },
+    {
+      "serverId": "SERVER_03",
+      "type": "24_7",
+      "state": "API_ERROR",
+      "total": 1093,
+      "sampleCount": 1,
+      "serverMatches": false,
+      "ms": 9565,
+      "apiResponseValid": true,
+      "dataWarning": "First sample is a repeated column-header row; omitted from UI"
+    },
+    {
+      "serverId": "SERVER_03",
+      "type": "VOD",
+      "state": "API_ERROR",
+      "total": 1887,
+      "sampleCount": 1,
+      "serverMatches": false,
+      "ms": 9573,
+      "apiResponseValid": true,
+      "dataWarning": "First sample is a repeated column-header row; omitted from UI"
+    },
+    {
+      "serverId": "SERVER_03",
+      "type": "SERIES",
+      "state": "API_ERROR",
+      "total": 52,
+      "sampleCount": 1,
+      "serverMatches": false,
+      "ms": 9558,
+      "apiResponseValid": true,
+      "dataWarning": "First sample is a repeated column-header row; omitted from UI"
+    },
+    {
+      "serverId": "SERVER_04",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 4728,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9140,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_04",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9152,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_04",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 12,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9128,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_04",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 2,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11857,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_05",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 8937,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11693,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_05",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11867,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_05",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 380,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9600,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_05",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9386,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_06",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 45793,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9376,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_06",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 2632,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 12086,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_06",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 732,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11996,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_06",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 434,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 12013,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_07",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10699,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_07",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10684,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_07",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10693,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_07",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9086,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_08",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9045,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_08",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9016,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_08",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11160,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_08",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11223,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_09",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 1222,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 11162,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_09",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10591,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_09",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10603,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_09",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10615,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_10",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 6281,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9883,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_10",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 60,
+      "sampleCount": 1,
+      "serverMatches": true,
+      "ms": 9825,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_10",
+      "type": "VOD",
+      "state": "API_ERROR",
+      "total": 94,
+      "sampleCount": 1,
+      "serverMatches": false,
+      "ms": 9845,
+      "apiResponseValid": true,
+      "dataWarning": "First sample has blank SERVER_ID; backing-sheet mapping must be verified before repair"
+    },
+    {
+      "serverId": "SERVER_10",
+      "type": "SERIES",
+      "state": "API_ERROR",
+      "total": 3,
+      "sampleCount": 1,
+      "serverMatches": false,
+      "ms": 10860,
+      "apiResponseValid": true,
+      "dataWarning": "First sample has blank SERVER_ID; backing-sheet mapping must be verified before repair"
+    },
+    {
+      "serverId": "SERVER_11",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10766,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_11",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10729,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_11",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9905,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_11",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10087,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_12",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9882,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_12",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10096,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_12",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10065,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_12",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9882,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_13",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11377,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_13",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11361,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_13",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 11387,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_13",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10629,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_14",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10668,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_14",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10600,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_14",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9320,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_14",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9189,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_15",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9147,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_15",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10652,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_15",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10691,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_15",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10528,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_16",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10904,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_16",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10897,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_16",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10990,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_16",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9488,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_17",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9444,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_17",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9347,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_17",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10136,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_17",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10156,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_18",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10058,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_18",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9398,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_18",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9288,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_18",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 9280,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_19",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10183,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_19",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10144,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_19",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10110,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_19",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10097,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_20",
+      "type": "LIVE",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10157,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_20",
+      "type": "24_7",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 10155,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_20",
+      "type": "VOD",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 8187,
+      "apiResponseValid": true
+    },
+    {
+      "serverId": "SERVER_20",
+      "type": "SERIES",
+      "state": "API_OK",
+      "total": 0,
+      "sampleCount": 0,
+      "serverMatches": true,
+      "ms": 8112,
+      "apiResponseValid": true
+    }
+  ],
+  "meaning": "One live list request per server/type. Not a complete row audit, import test or playback test."
+}

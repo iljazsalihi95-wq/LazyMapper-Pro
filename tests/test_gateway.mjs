@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import {handle,identity,portalAllowed,fixedOrigin} from '../cloudflare/worker.mjs';
+const pair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
+const jwk={...await crypto.subtle.exportKey('jwk',pair.publicKey),kid:'fixture'};
+const env={ACCESS_ISSUER:'https://fixture.cloudflareaccess.com',ACCESS_AUD:'fixture-aud',ADMIN_EMAILS:'admin@example.test',GAS_API_KEY:'private-gas-fixture',ANALYZER_TOKEN:'private-analyzer-fixture',GAS_URL:'https://script.google.com/macros/s/fixture/exec',ANALYZER_ORIGIN:'https://analyzer.example.test',PORTAL_ORIGINS:'https://portal.example.test',RATE_LIMITER:{limit:async()=>({success:true})},ASSETS:{fetch:async()=>new Response('asset')}};
+const enc=v=>Buffer.from(typeof v==='string'?v:JSON.stringify(v)).toString('base64url');
+async function token(extra={}){
+ const now=Math.floor(Date.now()/1000),head=enc({alg:'RS256',kid:'fixture'}),body=enc({iss:env.ACCESS_ISSUER,aud:[env.ACCESS_AUD],exp:now+60,iat:now-1,email:'admin@example.test',sub:'admin',...extra});
+ return head+'.'+body+'.'+Buffer.from(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',pair.privateKey,new TextEncoder().encode(head+'.'+body))).toString('base64url');
+}
+let calls=[];
+const transport=async(url,init={})=>{
+ calls.push({url:String(url),init});
+ if(String(url).endsWith('/certs'))return Response.json({keys:[jwk]});
+ if(String(url).includes('action=listJsonp'))return new Response('lm_gateway({"ok":true,"items":[],"total":0});');
+ return Response.json({ok:true});
+};
+const jwt=await token();
+const req=(path,body,j=jwt,origin='https://mapper.example.test')=>new Request(origin+path,{method:body?'POST':'GET',headers:{'Cf-Access-Jwt-Assertion':j,Origin:origin},body:body?JSON.stringify(body):undefined});
+assert.equal((await handle(req('/api/session',null,''),env,transport)).status,401);
+assert.equal((await handle(req('/api/session',null,await token({exp:1})),env,transport)).status,401);
+assert.equal((await handle(req('/api/session',null,await token({aud:['other']})),env,transport)).status,401);
+assert.equal((await handle(req('/api/session',null,await token({email:'stranger@example.test'})),env,transport)).status,401);
+const forged=jwt.split('.');forged[1]=enc({iss:env.ACCESS_ISSUER,aud:[env.ACCESS_AUD],exp:Date.now()/1000+100,iat:Date.now()/1000,email:'admin@example.test'});
+assert.equal((await handle(req('/api/session',null,forged.join('.')),env,transport)).status,401);
+assert.equal((await identity(req('/api/session'),env,transport)).email,'admin@example.test');
+const foreign=req('/api/jobs',{url:'https://portal.example.test/media'});foreign.headers.set('Origin','https://evil.example.test');assert.equal((await handle(foreign,env,transport)).status,403);
+assert.equal((await handle(req('/api/session'),{...env,RATE_LIMITER:{limit:async()=>({success:false})}},transport)).status,429);
+assert.throws(()=>fixedOrigin('https://analyzer.example.test/path'));
+assert.throws(()=>portalAllowed('http://127.0.0.1',env));
+assert.throws(()=>portalAllowed('https://portal.example.test@evil.example',env));
+calls=[];
+const result=await handle(req('/api/script',{action:'importBatch',serverId:'SERVER_20',source:'M3U',apiKey:'untrusted-client',items:[{id:'one',url:'https://portal.example.test/one'}]}),env,transport);
+assert.equal(result.status,200);
+assert.equal(JSON.parse(calls.at(-1).init.body).apiKey,env.GAS_API_KEY);
+assert(!calls.at(-1).url.includes(env.GAS_API_KEY));
+assert(!(await result.text()).includes(env.GAS_API_KEY));
+assert.equal((await handle(req('/api/script',{action:'importBatch',items:Array(41).fill({})}),env,transport)).status,400);
+assert.equal((await handle(req('/api/script',{action:'genres',portal:'http://127.0.0.1'}),env,transport)).status,502);
+assert.equal((await handle(req('/api/script',{action:'list',serverId:'SERVER_20',type:'LIVE'}),env,transport)).status,200);
+assert.equal((await handle(req('/api/script',{action:'unknown'}),env,transport)).status,400);
+assert.equal((await handle(req('/api/source',{url:'https://portal.example.test/list.m3u'}),env,transport)).status,200);
+assert.equal(calls.at(-1).url,'https://analyzer.example.test/api/source');
+assert.equal(calls.at(-1).init.headers.Authorization,'Bearer '+env.ANALYZER_TOKEN);
+assert.equal((await handle(req('/api/arbitrary'),env,transport)).status,404);
+console.log('Gateway: signed JWT verification, expiry/audience/admin rejection, CSRF, rate limit, fixed upstreams, secret injection, action and batch validation: PASS');

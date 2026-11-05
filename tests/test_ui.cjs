@@ -21,6 +21,7 @@ const {pathToFileURL}=require('node:url');
    assert.match(await page.locator('#m3uList').innerText(),/NOT TESTED/);
    await page.screenshot({path:`ui-checks/${name}-m3u.png`,fullPage:true});
    await page.locator('[data-page=settings]').click();
+   await page.locator('#legacySettings summary').click();
    assert.equal(await page.locator('#backendToken').getAttribute('type'),'password');
    assert.ok(await page.locator('#connectBackend').isVisible());
    assert.equal(await page.locator('#importApiKey').getAttribute('type'),'password');

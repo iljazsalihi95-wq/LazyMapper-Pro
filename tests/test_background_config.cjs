@@ -3,7 +3,7 @@ const html=fs.readFileSync('index.html','utf8');
 const script=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
 new vm.Script(script);
 const fields={importApiKey:{value:'import-fixture'},backendToken:{value:'different-worker-token'}};
-const c=vm.createContext({document:{getElementById:id=>fields[id]}});
+const c=vm.createContext({lmGateway:false,document:{getElementById:id=>fields[id]}});
 vm.runInContext(script.match(/function lmImportKey\(field\)\{[^\n]+/)[0],c);
 assert.equal(c.lmImportKey(null),'import-fixture');
 assert.equal(c.lmImportKey({value:' per-import '}),'per-import');

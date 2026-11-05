@@ -22,6 +22,7 @@ class VlcPreviewActivity : Activity() {
     private var source: Uri? = null
     private var fill = false
     private var full = false
+    private var lastMediaTime = -1L
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -46,6 +47,7 @@ class VlcPreviewActivity : Activity() {
             row.addView(Button(this).apply { this.text = text; textSize = 10f; setOnClickListener { action() } },
                 LinearLayout.LayoutParams(0, -2, 1f))
         }
+        button("PLAY/PAUSE") { player?.let { if (it.isPlaying) it.pause() else it.play() } }
         button("RETRY") { release(); start() }
         button("FIT/FILL") {
             fill = !fill
@@ -77,12 +79,19 @@ class VlcPreviewActivity : Activity() {
         lib = engine
         val mediaPlayer = MediaPlayer(engine)
         player = mediaPlayer
+        lastMediaTime = -1L
         mediaPlayer.attachViews(surface, null, true, false)
         mediaPlayer.setEventListener { event ->
             runOnUiThread {
                 if (player !== mediaPlayer) return@runOnUiThread
                 status.text = when (event.type) {
-                    MediaPlayer.Event.Playing -> "VLC PLAYING • kontrollo figurën dhe zërin"
+                    MediaPlayer.Event.Playing -> "VLC STARTED • në pritje të progresit real"
+                    MediaPlayer.Event.TimeChanged -> {
+                        val advanced = lastMediaTime >= 0 && event.timeChanged > lastMediaTime
+                        lastMediaTime = event.timeChanged
+                        if (advanced) "VLC PLAYBACK PROGRESS • kontrollo figurën dhe zërin" else status.text
+                    }
+                    MediaPlayer.Event.Paused -> "PAUSED"
                     MediaPlayer.Event.Buffering -> "BUFFERING ${event.buffering.toInt()}%"
                     MediaPlayer.Event.EncounteredError -> "VLC ERROR • playback dështoi"
                     MediaPlayer.Event.EndReached -> "PËRFUNDOI"

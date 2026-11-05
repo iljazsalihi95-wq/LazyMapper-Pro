@@ -12,6 +12,8 @@ class WorkerFailureTest(unittest.TestCase):
         fake = types.ModuleType('analyzer')
         fake.target = lambda *args: None
         fake.analyze = lambda *args: None
+        fake.Fetcher = object
+        fake.PolicyError = ValueError
         spec = importlib.util.spec_from_file_location('worker_under_test', pathlib.Path(__file__).parents[1] / 'backend/server.py')
         server = importlib.util.module_from_spec(spec)
         with patch.dict(sys.modules, {'analyzer': fake}):

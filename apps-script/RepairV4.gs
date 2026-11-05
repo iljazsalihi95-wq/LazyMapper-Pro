@@ -9,7 +9,7 @@ var LM_V4_PRIVATE_ACTIONS_ = ['genres','channels','create_link','vod_genres','vo
 
 doGet = function(e) {
   var action=String(e&&e.parameter&&e.parameter.action||'ping');
-  if(action==='jobStatus'||LM_V4_PRIVATE_ACTIONS_.indexOf(action)>=0)
+  if(['jobStatus','statusJob','importBatch','startJob','pauseJob','resumeJob','cancelJob'].indexOf(action)>=0||LM_V4_PRIVATE_ACTIONS_.indexOf(action)>=0)
     return json_({ok:false,error:'Use authenticated POST for this action'});
   return LM_V4_GET_BASE_(e);
 };
@@ -17,6 +17,19 @@ doGet = function(e) {
 doPost = function(e) {
   try {
     var body=parseBody_(e), action=String(body.action||'');
+    if(action==='statusJob'){action='jobStatus';body.action=action;}
+    if(action==='importBatch') {
+      auth_(body.apiKey);lmV4Server_(body.serverId);
+      if(!Array.isArray(body.items)||body.items.length<1||body.items.length>40)throw Error('Batch invalid: 1–40 items required');
+      if(['M3U','STALKER','XTREAM'].indexOf(String(body.source||'').toUpperCase())<0)throw Error('Source invalid');
+      var seen={};body.items=body.items.filter(function(x){
+        if(!x||typeof x!=='object'||!String(x.id||x.sourceId||''))throw Error('Item identity invalid');
+        if(x.serverId&&x.serverId!==body.serverId)throw Error('Item server invalid');
+        var identity=String(x.type||'LIVE')+'|'+String(x.sourceId||x.id);
+        if(seen[identity])return false;seen[identity]=true;return true;
+      });
+      return LM_V4_POST_BASE_({postData:{contents:JSON.stringify(body),type:'text/plain'},parameter:{}});
+    }
     if(['startJob','jobStatus','cancelJob','pauseJob','resumeJob','jobs'].indexOf(action)>=0 || LM_V4_PRIVATE_ACTIONS_.indexOf(action)>=0) {
       auth_(body.apiKey);
       if(action==='jobs') return json_({ok:true,jobs:lmV4Jobs_()});
@@ -45,6 +58,7 @@ doPost = function(e) {
   }
 };
 
+function lmV4Server_(id){if(!/^SERVER_(0[1-9]|1[0-9]|20)$/.test(String(id||'')))throw Error('Server invalid');}
 function lmV4ValidatePortal_(portal,mac) {
   if(!/^https?:\/\/[^\s\/?#@]+(?:\/[^\s?#]*)?\/?$/i.test(String(portal||''))) throw Error('Portal URL invalid');
   if(!/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(String(mac||''))) throw Error('Device MAC invalid');
@@ -81,7 +95,7 @@ publicJob_ = function(j) {
   return out;
 };
 createLazyMapperJob = function(data) {
-  lmV4ValidatePortal_(data.portal,data.mac);
+  lmV4Server_(data.serverId);lmV4ValidatePortal_(data.portal,data.mac);
   var mt=String(data.mediaType||data.type||'LIVE').toUpperCase();
   if(['LIVE','VOD','SERIES'].indexOf(mt)<0) throw Error('Media type invalid');
   if(!Array.isArray(data.genres)||!data.genres.length||data.genres.length>500) throw Error('Genres invalid: 1–500 required');
@@ -95,7 +109,7 @@ function lmV4Control_(id,action) {
       if(['QUEUED','RUNNING'].indexOf(job.state)<0) throw Error('Job state cannot pause');
       job.state='PAUSED'; job.message='Progresi u ruajt; puna u pezullua';
     } else if(action==='resumeJob') {
-      if(['PAUSED','ERROR'].indexOf(job.state)<0) throw Error('Job state cannot resume');
+      if(['PAUSED','ERROR','AUTH_REQUIRED','RATE_LIMITED'].indexOf(job.state)<0) throw Error('Job state cannot resume');
       job.state='QUEUED'; job.nextRunAt=0; job.retryCount=0; job.message='Vazhdon nga faqja e ruajtur';
     } else {
       if(['DONE','CANCELLED'].indexOf(job.state)>=0) return publicJob_(job);
@@ -140,6 +154,7 @@ function lmV4RunJob_(id,started) {
       j.state='RUNNING';saveJob_(j);return j;
     });
     if(!job) return;
+    if(Number(job.page||1)>150)throw Error('Page limit reached; narrow categories before resuming');
     if(job.genreIndex>=job.genres.length) {lmV4Finish_(id);return;}
     var genre=job.genres[job.genreIndex]||{}, gid=genre.id!==undefined?genre.id:genre.genre_id!==undefined?genre.genre_id:genre.category_id!==undefined?genre.category_id:genre;
     var mt=String(job.mediaType||'LIVE').toUpperCase(), result;

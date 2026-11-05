@@ -44,9 +44,10 @@ class PinnedTLS(http.client.HTTPSConnection):
 
 
 class Fetcher:
-    def __init__(self, allowed_hosts, deadline):
+    def __init__(self, allowed_hosts, deadline, limit=LIMIT):
         self.allowed_hosts = allowed_hosts
         self.deadline = deadline
+        self.limit = limit
         self.chain = []
 
     def get(self, url):
@@ -63,7 +64,7 @@ class Fetcher:
             try:
                 host = u.hostname if port in (80, 443) else f'{u.hostname}:{port}'
                 conn.request('GET', (u.path or '/') + ('?' + u.query if u.query else ''),
-                             headers={'Host': host, 'Range': f'bytes=0-{LIMIT-1}',
+                             headers={'Host': host, 'Range': f'bytes=0-{self.limit-1}',
                                       'Accept-Encoding': 'identity', 'User-Agent': 'LazyMapper-Pro/2'})
                 response = conn.getresponse()
                 self.chain.append({'status': response.status, 'host': u.hostname})
@@ -78,10 +79,10 @@ class Fetcher:
                     continue
                 data = bytearray()
                 if response.status in (200, 206):
-                    while len(data) < LIMIT:
+                    while len(data) < self.limit:
                         if time.monotonic() >= self.deadline:
                             raise TimeoutError()
-                        chunk = response.read1(min(65536, LIMIT-len(data)))
+                        chunk = response.read1(min(65536, self.limit-len(data)))
                         if not chunk:
                             break
                         data.extend(chunk)

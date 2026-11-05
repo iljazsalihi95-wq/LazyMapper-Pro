@@ -22,6 +22,7 @@ public class PreviewActivity extends Activity {
   private String url;
   private String currentMode="AUTO";
   private boolean fullscreen=false;
+  private boolean renderedFrame=false;
   private int resizeMode=androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
   @Override public void onCreate(Bundle state){
     super.onCreate(state);
@@ -75,7 +76,7 @@ public class PreviewActivity extends Activity {
     play(mode==null?"AUTO":mode);
   }
   private void play(String kind){
-    currentMode=kind;
+    currentMode=kind;renderedFrame=false;
     if(player!=null){view.setPlayer(null);player.release();player=null;}
     status.setText("DUKE TESTUAR • "+kind);
     player=new ExoPlayer.Builder(this).build();
@@ -84,6 +85,8 @@ public class PreviewActivity extends Activity {
     view.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
     view.setShowSubtitleButton(true);
     player.addListener(new Player.Listener(){
+      @Override public void onRenderedFirstFrame(){renderedFrame=true;status.setText("VIDEO FRAME RENDERED • "+kind);}
+      @Override public void onIsPlayingChanged(boolean playing){if(playing&&renderedFrame)status.setText("PLAYING • video frame u renderua • "+kind);else if(!playing&&renderedFrame)status.setText("PAUSED / BUFFERING • "+kind);}
       @Override public void onPlaybackStateChanged(int state){
         if(state==Player.STATE_READY)status.setText("READY • "+kind+" • video u përgatit (kontrollo figurën dhe zërin)");
         else if(state==Player.STATE_BUFFERING)status.setText("BUFFERING • "+kind);
