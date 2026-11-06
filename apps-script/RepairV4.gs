@@ -9,7 +9,7 @@ var LM_V4_PRIVATE_ACTIONS_ = ['genres','channels','create_link','vod_genres','vo
 
 doGet = function(e) {
   var action=String(e&&e.parameter&&e.parameter.action||'ping');
-  if(['jobStatus','statusJob','importBatch','startJob','pauseJob','resumeJob','cancelJob'].indexOf(action)>=0||LM_V4_PRIVATE_ACTIONS_.indexOf(action)>=0)
+  if(['jobs','jobStatus','statusJob','importBatch','startJob','pauseJob','resumeJob','cancelJob'].indexOf(action)>=0||LM_V4_PRIVATE_ACTIONS_.indexOf(action)>=0)
     return json_({ok:false,error:'Use authenticated POST for this action'});
   return LM_V4_GET_BASE_(e);
 };
@@ -22,7 +22,7 @@ doPost = function(e) {
       auth_(body.apiKey);lmV4Server_(body.serverId);
       if(!Array.isArray(body.items)||body.items.length<1||body.items.length>40)throw Error('Batch invalid: 1–40 items required');
       if(['M3U','STALKER','XTREAM'].indexOf(String(body.source||'').toUpperCase())<0)throw Error('Source invalid');
-      var seen={};body.items=body.items.filter(function(x){
+      var seen=Object.create(null);body.items=body.items.filter(function(x){
         if(!x||typeof x!=='object'||!String(x.id||x.sourceId||''))throw Error('Item identity invalid');
         if(x.serverId&&x.serverId!==body.serverId)throw Error('Item server invalid');
         var identity=String(x.type||'LIVE')+'|'+String(x.sourceId||x.id);

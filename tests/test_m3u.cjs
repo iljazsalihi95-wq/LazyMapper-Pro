@@ -26,3 +26,11 @@ assert.equal(invalid.length,0);assert.equal(invalid.diagnostics.length,2);
 const relative=context.parseM3U('#EXTM3U\n#EXTINF:-1 group-title="Movies",Film\nmovie.mp4','https://media.example/catalog/list.m3u');
 assert.equal(relative[0].url,'https://media.example/catalog/movie.mp4');assert.equal(relative[0].type,'VOD');
 console.log('Invalid URI diagnostics, dangling EXTINF, relative URL and media classification: PASS');
+
+const receipt=script.slice(script.indexOf('function lmConfirmImport('),script.indexOf('async function lmUploadBatch('));
+vm.runInContext(receipt,context);
+assert.equal(context.lmConfirmImport({ok:true,added:2,updated:1},3).updated,1);
+for(const invalid of [{ok:true},{ok:true,added:1,updated:1},{ok:true,added:4,updated:-1},{ok:true,added:'3',updated:0}]){
+ assert.throws(()=>context.lmConfirmImport(invalid,3),error=>error.unverifiedImport===true);
+}
+console.log('Import advances only after the API accounts for every row: PASS');

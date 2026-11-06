@@ -22,6 +22,8 @@ function seed(mt='LIVE'){store={LM_JOB_one:JSON.stringify({jobId:'one',state:'QU
 const post=body=>c.doPost({postData:{contents:JSON.stringify(body)}});
 assert.equal(post({action:'startJob'}).error,'AUTH REQUIRED');
 assert.equal(c.doGet({parameter:{action:'genres'}}).ok,false);
+assert.equal(c.doGet({parameter:{action:'jobs'}}).ok,false);
+assert.equal(post({action:'jobs'}).error,'AUTH REQUIRED');
 assert.throws(()=>c.lmV4ValidatePortal_('javascript:alert(1)','00:11:22:33:44:55'));
 assert.throws(()=>c.lmV4ValidatePortal_('https://fixture.example','wrong'));
 seed();assert.equal(post({action:'pauseJob',jobId:'one',apiKey:'test-only'}).job.state,'PAUSED');
