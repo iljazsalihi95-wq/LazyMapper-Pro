@@ -3,12 +3,14 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
 (async()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'mapper-media-'));
  execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','testsrc=size=320x180:rate=15','-t','3','-an','-c:v','libvpx','-pix_fmt','yuv420p',path.join(temp,'sample.webm')]);
+ execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','testsrc=size=320x180:rate=15','-t','3','-an','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(temp,'sample.mp4')]);
  let base,imports=[],stored=new Map(),actions=[],failNext=0,authFail=false;
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,base);
   const json=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));};
   if(url.pathname==='/api/session')return json({ok:true,email:'fixture@example.test',transport:'access-session'});
   if(url.pathname==='/sample.webm'){res.setHeader('Content-Type','video/webm');return res.end(fs.readFileSync(path.join(temp,'sample.webm')));}
+  if(url.pathname==='/sample.mp4'){res.setHeader('Content-Type','video/mp4');return res.end(fs.readFileSync(path.join(temp,'sample.mp4')));}
   if(url.pathname==='/api/script'||url.pathname==='/api/source'){
    let raw='';for await(const data of req)raw+=data;const body=JSON.parse(raw);
    assert(!('apiKey' in body),'Browser must not send a private key through the session gateway');
@@ -21,7 +23,10 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
     return json([]);
    }
    actions.push(body.action);
-   if(body.action==='list')return json({ok:true,total:0,items:[]});
+   if(body.action==='list'){
+    const items=body.serverId==='SERVER_20'?[{NAME:'Authorized MP4 fixture',STREAM_URL_CMD:base+'/sample.mp4',SERVER_ID:'SERVER_20'}]:[];
+    return json({ok:true,total:items.length,items});
+   }
    if(body.action==='importBatch'){
     imports.push(body);
     if(authFail){res.statusCode=401;return json({ok:false,error:'AUTH REQUIRED'});}
@@ -47,6 +52,7 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   // production discovery deliberately requires HTTPS. All real provider calls blocked.
   await page.route('**/*',route=>{
    if(route.request().url()===base+'/index.html')return route.fulfill({contentType:'text/html',body:fs.readFileSync('index.html','utf8').replace('location.protocol!=="https:"','false')});
+   if(route.request().url().startsWith(base+'/server.html?'))return route.fulfill({contentType:'text/html',body:fs.readFileSync('server.html','utf8').replace("location.protocol!=='https:'",'false')});
    return route.request().url().startsWith(base)?route.continue():route.abort();
   });
   await page.goto(base+'/index.html');
@@ -94,8 +100,17 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   await page.waitForFunction(()=>document.getElementById('previewStatus').textContent.includes('PLAYING'));
   assert(actions.includes('create_link'));
   await page.locator('#previewClose').click();
+  await page.goto(base+'/server.html?server=SERVER_20');
+  await page.getByRole('button',{name:'PREVIEW',exact:false}).filter({hasText:'▶ PREVIEW'}).click();
+  await page.waitForFunction(()=>document.getElementById('previewStatus').textContent.includes('PLAYING'));
+  assert.ok(await page.locator('#previewVideo').evaluate(v=>v.currentTime>0&&v.videoWidth===320));
+  await page.locator('#stopPreview').click();
+  assert.equal(await page.locator('#previewVideo').getAttribute('src'),null);
+  await page.evaluate(()=>{window.LazyMapperNative={preview:(...args)=>{window.fixtureNativePreview=args;}};});
+  await page.getByRole('button',{name:'▶ PREVIEW',exact:true}).click();
+  assert.deepEqual(await page.evaluate(()=>window.fixtureNativePreview),[base+'/sample.mp4','Authorized MP4 fixture','AUTO']);
   assert.deepEqual(errors,[]);
   console.log('Session UI, 40+5 import with STOP/Resume into SERVER_20, identical-payload transient Retry, no auth retry, no fake WORKING, Xtream episodes and Stalker CREATE_LINK: PASS (fixture APIs)');
-  console.log('Actual generated VP8 video decoded/played in Chromium and stopped on close: PASS');
+  console.log('Actual VP8 and H.264 MP4 decoded/played in Chromium, stopped on close, Android bridge arguments verified: PASS');
  }finally{await browser.close();await new Promise(r=>server.close(r));fs.rmSync(temp,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});
