@@ -44,3 +44,14 @@ assert.equal(calls.at(-1).url,'https://analyzer.example.test/api/source');
 assert.equal(calls.at(-1).init.headers.Authorization,'Bearer '+env.ANALYZER_TOKEN);
 assert.equal((await handle(req('/api/arbitrary'),env,transport)).status,404);
 console.log('Gateway: signed JWT verification, expiry/audience/admin rejection, CSRF, rate limit, fixed upstreams, secret injection, action and batch validation: PASS');
+
+for(const [upstream,status] of [
+ [()=>Response.json({ok:false,error:'RATE LIMITED'}),429],
+ [()=>Response.json({ok:false,error:'AUTH REQUIRED'}),401],
+ [()=>Response.json({ok:false,error:'Provider timed out'}),504],
+ [()=>new Response(null,{status:429}),429]
+]){
+ const response=await handle(req('/api/script',{action:'jobs'}),env,async()=>upstream());
+ assert.equal(response.status,status);
+}
+console.log('Gateway preserves upstream auth, rate limit and timeout outcomes: PASS');

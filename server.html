@@ -39,7 +39,44 @@ function render(){const c=$('co').value,k=$('ca').value,z=$('q').value.trim().to
 async function load(){const token=++loadToken,server=SERVER_ID,kind=typ;const st=$('st');st.className='m';st.textContent='Po lexohet '+server+' • '+kind+'...';rows=[];$('ls').replaceChildren();try{const all=[];let offset=0,total=1,guard=0;while(offset<total&&guard++<1000){const j=await jsonpPage(server,kind,offset,500,token);if(token!==loadToken||j?.cancelled)return;if(!j||j.ok!==true||!Array.isArray(j.items))throw Error(j?.error||'Përgjigje API e pavlefshme');total=Number(j.total??(j.items.length===500?offset+501:offset+j.items.length));if(!Number.isFinite(total)||total<0)throw Error('Total i pavlefshëm');if(j.items.some(x=>{const id=v(x,'SERVER_ID','server_id');return id&&id!=='SERVER_ID'&&id!==server;}))throw Error('Server mismatch; page rejected');all.push(...j.items);rows=all.filter(x=>v(x,'NAME','name').toUpperCase()!=='NAME');const country=$('co').value,category=$('ca').value;filters();$('co').value=country;cats();$('ca').value=category;render();if(!j.items.length){if(offset<total)throw Error('API ktheu faqe bosh para përfundimit');break;}offset+=j.items.length;st.textContent='Po lexohet '+server+' • '+kind+' • '+offset+'/'+total}if(token!==loadToken)return;if(offset<total)throw Error('Ngarkimi u ndërpre para përfundimit: '+offset+'/'+total);rows=all.filter(x=>v(x,'NAME','name').toUpperCase()!=='NAME');filters();render();st.className='m ok'}catch(e){if(token!==loadToken)return;rows=[];$('co').replaceChildren();$('ca').replaceChildren();st.className='m err';st.textContent='Gabim: '+e.message;$('ls').textContent='Nuk u lexuan të dhënat e '+server+'.'}}
 let lastPreview=null,serverHls=null;const video=$('previewVideo');
 function stopPreview(){if(serverHls){serverHls.destroy();serverHls=null}video.pause();video.removeAttribute('src');video.load()}
-function openPreview(url,name){lastPreview={url,name};stopPreview();$('previewLabel').textContent=name;$('previewStatus').textContent='Po hapet stream-i…';const hls=/\.m3u8(?:[?#]|$)/i.test(url);if(hls&&window.Hls&&window.Hls.isSupported()){let retries=0;serverHls=new window.Hls({enableWorker:true,maxBufferLength:25});serverHls.on(window.Hls.Events.ERROR,(_event,data)=>{if(!data.fatal)return;if(retries++>=2){stopPreview();$('previewStatus').textContent='HLS retries exhausted; përdor Retry.';return;}$('previewStatus').textContent='Gabim HLS: '+data.details;if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR)serverHls.startLoad();else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR)serverHls.recoverMediaError();else stopPreview()});serverHls.loadSource(url);serverHls.attachMedia(video)}else{video.src=url;if(hls&&!video.canPlayType('application/vnd.apple.mpegurl'))$('previewStatus').textContent='HLS nuk mbështetet në këtë shfletues.'}const promise=video.play();if(promise&&promise.catch)promise.catch(()=>{$('previewStatus').textContent='Shtyp Play; nëse nuk luan, kontrollo formatin, CORS dhe autorizimin.'});$('previewPanel').scrollIntoView({behavior:'smooth',block:'start'})}
+function openPreview(url,name){
+ lastPreview={url,name};stopPreview();
+ $('previewLabel').textContent=name;
+ const status=$('previewStatus');
+ if(typeof window.LazyMapperNative?.preview==='function'){
+  try{window.LazyMapperNative.preview(url,name,'AUTO');status.textContent='Player-i Android u hap.';return;}catch{}
+ }
+ status.textContent='Po hapet stream-i…';
+ $('previewPanel').scrollIntoView({behavior:'smooth',block:'start'});
+ const hls=/\.m3u8(?:[?#]|$)/i.test(url);
+ const nativeHls=video.canPlayType('application/vnd.apple.mpegurl');
+ function play(){
+  video.play().catch(error=>{
+   if(error.name==='NotAllowedError'&&lastPreview?.url===url)status.textContent='Shtyp Play për të nisur videon.';
+  });
+ }
+ if(hls&&!nativeHls){
+  if(!window.Hls?.isSupported()){status.textContent='UNSUPPORTED FORMAT • HLS kërkon player të përshtatshëm.';return;}
+  const instance=new window.Hls({enableWorker:true,maxBufferLength:25});
+  serverHls=instance;
+  let retries=0;
+  instance.on(window.Hls.Events.ERROR,(_event,data)=>{
+   if(serverHls!==instance||!data.fatal)return;
+   if(retries++>=2){stopPreview();status.textContent='HLS u ndërpre. Përdor Retry për të provuar përsëri.';return;}
+   status.textContent='Gabim HLS: '+data.details;
+   if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR)instance.startLoad();
+   else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR)instance.recoverMediaError();
+   else stopPreview();
+  });
+  instance.on(window.Hls.Events.MANIFEST_PARSED,()=>{if(serverHls===instance)play();});
+  instance.attachMedia(video);instance.loadSource(url);
+  return;
+ }
+ if(/\.ts(?:[?#]|$)/i.test(url)&&!video.canPlayType('video/mp2t')){
+  status.textContent='UNSUPPORTED FORMAT • MPEG-TS kërkon player-in Android.';return;
+ }
+ video.src=url;play();
+}
 let startTime=0;video.addEventListener('playing',()=>{startTime=video.currentTime;$('previewStatus').textContent='Player-i nisi; pritet progres real.'});video.addEventListener('timeupdate',()=>{if(video.currentTime>startTime+0.05&&video.readyState>=2)$('previewStatus').textContent='PLAYING • progres real nga player-i';});video.addEventListener('waiting',()=>{$('previewStatus').textContent='BUFFERING';});window.addEventListener('pagehide',stopPreview);video.addEventListener('error',()=>{$('previewStatus').textContent='Player nuk mund ta luajë këtë stream; kjo nuk e provon kanalin DEAD.'});$('previewRetry').onclick=()=>{if(lastPreview)openPreview(lastPreview.url,lastPreview.name)};$('previewFullscreen').onclick=()=>{if(video.requestFullscreen)video.requestFullscreen().catch(()=>{});else if(video.webkitEnterFullscreen)video.webkitEnterFullscreen()};
 $('refreshList').onclick=()=>load();$('stopPreview').onclick=()=>{stopPreview();lastPreview=null;$('previewStatus').textContent='Player u ndal.'};
 document.querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{stopPreview();lastPreview=null;document.querySelectorAll('button[data-t]').forEach(x=>x.classList.remove('on'));b.classList.add('on');typ=b.dataset.t;load()});

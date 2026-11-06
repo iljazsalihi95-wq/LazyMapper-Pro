@@ -75,9 +75,17 @@ async function script(body,env,transport) {
     return Response.json(data,{headers:{'Cache-Control':'no-store'}});
   }
   const r=await transport(url.href,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,apiKey:env.GAS_API_KEY}),redirect:'follow',signal:AbortSignal.timeout(60000)});
+  if(r.status===429)return failure(429,'RATE LIMITED');
+  if(r.status===401||r.status===403)return failure(401,'AUTH REQUIRED');
   if(!r.ok)return failure(502,'Apps Script HTTP '+r.status);
   const result=await r.json();
-  if(result?.ok!==true)return failure(/AUTH|Unauthorized/i.test(result?.error||'')?401:502,'Apps Script rejected action');
+  if(result?.ok!==true){
+    const error=String(result?.error||'');
+    if(/RATE LIMITED|quota|too many/i.test(error))return failure(429,'RATE LIMITED');
+    if(/AUTH REQUIRED|Unauthorized/i.test(error))return failure(401,'AUTH REQUIRED');
+    if(/TIMEOUT|timed out/i.test(error))return failure(504,'TIMEOUT');
+    return failure(502,'Apps Script rejected action');
+  }
   // Server-side adapter returns only the public job/metadata schema. Secrets are
   // never supplied by clients or sent as URL parameters.
   return Response.json(result,{headers:{'Cache-Control':'no-store'}});
